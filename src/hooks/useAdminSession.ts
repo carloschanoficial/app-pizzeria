@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 
-export const SUPER_ADMIN_EMAILS = ['carloschan1890@gmail.com', 'carloschan.oficial@gmail.com'];
+export const SUPER_ADMIN_EMAILS = ['carloschan.oficial@gmail.com'];
 
 export interface AdminRecord {
   email: string;
