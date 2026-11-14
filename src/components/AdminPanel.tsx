@@ -22,7 +22,7 @@ import { AdminShifts } from '@/components/admin/AdminShifts';
 import { getLoyaltyStampsRequired } from '@/lib/loyaltyRules';
 import { InstallAppButton } from '@/components/InstallAppButton';
 import type { InstallPromptState } from '@/hooks/useInstallPrompt';
-import { ArrowLeft, Pizza, Tag, Settings, Image, Users, LogOut, CreditCard, Wallet, ClipboardList } from 'lucide-react';
+import { ArrowLeft, Utensils, Tag, Settings, Image, Users, LogOut, CreditCard, Wallet, ClipboardList } from 'lucide-react';
 
 interface AdminPanelProps {
   isSuperAdmin: boolean;
@@ -67,8 +67,8 @@ export function AdminPanel({ isSuperAdmin, onExit, install }: AdminPanelProps) {
     fetchAll();
   }, [fetchAll]);
 
-  const TABS: { key: AdminTab; label: string; icon: typeof Pizza }[] = [
-    { key: 'productos', label: 'Productos', icon: Pizza },
+  const TABS: { key: AdminTab; label: string; icon: typeof Utensils }[] = [
+    { key: 'productos', label: 'Productos', icon: Utensils },
     { key: 'extras', label: 'Ingredientes', icon: Tag },
     { key: 'banners', label: 'Banners', icon: Image },
     { key: 'pedidos', label: 'Pedidos', icon: ClipboardList },
