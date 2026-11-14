@@ -68,6 +68,48 @@ export function AdminCashRegister() {
 
   return (
     <div className="space-y-5 px-4 pb-6">
+      {isOpen && confirmingClose && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={saving ? undefined : cancelClose} />
+          <div className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-white p-5 sm:rounded-2xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-gray-900">Cerrar caja</h3>
+              <button
+                type="button"
+                onClick={cancelClose}
+                disabled={saving}
+                aria-label="Cerrar"
+                className="rounded-full bg-gray-100 p-1.5 text-gray-500 transition hover:bg-gray-200 disabled:opacity-50"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="mt-2 text-sm text-gray-600">
+              Cuenta el efectivo físico de la caja antes de confirmar el cierre.
+            </p>
+            <CashRegisterCountForm expectedCash={expectedCash} count={count} onChange={setCount} />
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={cancelClose}
+                disabled={saving}
+                className="rounded-full bg-white py-3 text-sm font-bold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-100 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleClose}
+                disabled={saving}
+                className="rounded-full bg-red-600 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-red-700 active:scale-[0.98] disabled:opacity-50"
+              >
+                {saving ? 'Cerrando...' : 'Confirmar cierre'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-100">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -147,32 +189,7 @@ export function AdminCashRegister() {
           </button>
         )}
 
-        {isOpen && confirmingClose && (
-          <div className="mt-4 space-y-3 rounded-xl bg-gray-50 p-4">
-            <p className="text-sm text-gray-700">
-              Cuenta el efectivo físico de la caja antes de confirmar el cierre.
-            </p>
-            <CashRegisterCountForm expectedCash={expectedCash} count={count} onChange={setCount} />
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={cancelClose}
-                disabled={saving}
-                className="rounded-full bg-white py-3 text-sm font-bold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-100 disabled:opacity-50"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={handleClose}
-                disabled={saving}
-                className="rounded-full bg-red-600 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-red-700 active:scale-[0.98] disabled:opacity-50"
-              >
-                {saving ? 'Cerrando...' : 'Confirmar cierre'}
-              </button>
-            </div>
-          </div>
-        )}
+
 
         {!loading && !isOpen && !showForm && (
           <button

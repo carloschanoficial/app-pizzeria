@@ -64,7 +64,7 @@ export function CashRegisterCountForm({ expectedCash, count, onChange }: CashReg
           <dd className="font-semibold text-gray-900">{formatPriceDecimal(expectedCash)}</dd>
         </div>
         <div className="flex items-center justify-between">
-          <dt className="text-gray-600">Efectivo físico contado</dt>
+          <dt className="text-gray-600">Efectivo contado</dt>
           <dd className="font-semibold text-gray-900">{formatPriceDecimal(countedCash)}</dd>
         </div>
         <div
