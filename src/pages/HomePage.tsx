@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Flame, Clock, MapPin } from 'lucide-react';
-import type { Product, Category, PromoBanner as PromoBannerType, StoreSettings } from '@/types';
+import type { Product, Category, PromoBanner as PromoBannerType, ServiceShift, StoreSettings } from '@/types';
 import { ProductCard } from '@/components/ProductCard';
 import { PromoBanner } from '@/components/PromoBanner';
 import { getStoreOpen, getScheduleText } from '@/lib/storeHours';
@@ -9,6 +9,7 @@ import type { TabKey } from '@/components/BottomNav';
 interface HomePageProps {
   products: Product[];
   categories: Category[];
+  shifts: ServiceShift[];
   settings: StoreSettings | null;
   banners: PromoBannerType[];
   searchQuery: string;
@@ -18,6 +19,7 @@ interface HomePageProps {
 
 export function HomePage({
   products,
+  shifts,
   settings,
   banners,
   searchQuery,
@@ -34,7 +36,17 @@ export function HomePage({
   }, [products, searchQuery]);
 
   const bestsellers = filtered.filter((p) => p.is_bestseller);
-  const pizzas = filtered.filter((p) => p.sizes !== null);
+  const sections = useMemo(() => {
+    const grouped = shifts
+      .map((s) => ({ key: s.id, title: s.name, items: filtered.filter((p) => p.shift_id === s.id) }))
+      .filter((g) => g.items.length > 0);
+    const shiftIds = new Set(shifts.map((s) => s.id));
+    const unassigned = filtered.filter((p) => !p.shift_id || !shiftIds.has(p.shift_id));
+    if (unassigned.length > 0) {
+      grouped.push({ key: 'sin-turno', title: 'Nuestra carta', items: unassigned });
+    }
+    return grouped;
+  }, [shifts, filtered]);
   const isOpen = getStoreOpen(settings);
 
   return (
@@ -77,17 +89,17 @@ export function HomePage({
         </div>
       )}
 
-      {/* Todas las pizzas */}
-      {pizzas.length > 0 && (
-        <div>
-          <h2 className="mb-3 text-lg font-black text-gray-900">Nuestras Pizzas</h2>
+      {/* Secciones por turno */}
+      {sections.map((section) => (
+        <div key={section.key}>
+          <h2 className="mb-3 text-lg font-black text-gray-900">{section.title}</h2>
           <div className="grid grid-cols-2 gap-3">
-            {pizzas.map((p) => (
+            {section.items.map((p) => (
               <ProductCard key={p.id} product={p} onClick={() => onProductClick(p)} />
             ))}
           </div>
         </div>
-      )}
+      ))}
 
       {/* Dirección */}
       {settings && (

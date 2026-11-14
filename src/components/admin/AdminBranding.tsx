@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Check, ImagePlus, Palette, Store } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { BrandLogo, BRAND_PRESET_ICONS, DEFAULT_BRAND_LOGO, PRESET_PREFIX } from '@/components/BrandLogo';
+import { BrandLogo, AUTO_BRAND_LOGO, BRAND_PRESET_ICONS, DEFAULT_BRAND_LOGO, PRESET_PREFIX } from '@/components/BrandLogo';
 import { BRAND_THEMES } from '@/lib/brandThemes';
 import {
   DEFAULT_BRAND_COLOR,
@@ -228,7 +228,7 @@ export function AdminBranding({ settings, onChanged }: AdminBrandingProps) {
           <span className="text-sm font-bold text-gray-700">Logotipo</span>
           <div className="mt-2 flex items-center gap-3">
             <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-red-600 text-white shadow-md">
-              <BrandLogo logo={logo} className="h-9 w-9" />
+              <BrandLogo logo={logo} name={name} className="h-9 w-9" />
             </div>
             <div className="flex flex-1 flex-col gap-2">
               <button
@@ -252,6 +252,17 @@ export function AdminBranding({ settings, onChanged }: AdminBrandingProps) {
             </div>
           </div>
           <div className="mt-3 grid grid-cols-5 gap-2">
+            <button
+              type="button"
+              onClick={() => setLogo(AUTO_BRAND_LOGO)}
+              aria-label="Logotipo automático"
+              aria-pressed={logo === AUTO_BRAND_LOGO}
+              className={`flex aspect-square items-center justify-center rounded-xl border-2 transition active:scale-95 ${
+                logo === AUTO_BRAND_LOGO ? 'border-red-600 bg-red-50 text-red-600' : 'border-gray-200 text-gray-500 hover:border-red-300'
+              }`}
+            >
+              <BrandLogo logo={AUTO_BRAND_LOGO} name={name} className="h-5 w-5" />
+            </button>
             {Object.keys(BRAND_PRESET_ICONS).map((presetName) => {
               const value = `${PRESET_PREFIX}${presetName}`;
               const active = logo === value;

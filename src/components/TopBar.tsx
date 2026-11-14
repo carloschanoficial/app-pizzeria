@@ -30,7 +30,7 @@ export function TopBar({
     <header className="fixed top-0 left-0 right-0 z-40 bg-red-600 text-white shadow-lg">
       <div className="flex items-center gap-2 px-4 pt-3 pb-2">
         <div className="flex min-w-0 items-center gap-2">
-          <BrandLogo logo={logo} className="h-7 w-7 flex-shrink-0" />
+          <BrandLogo logo={logo} name={businessName} className="h-7 w-7 flex-shrink-0" />
           <span className="truncate text-xl font-black tracking-tight">
             {businessName}
           </span>

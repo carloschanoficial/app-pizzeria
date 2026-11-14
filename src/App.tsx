@@ -143,6 +143,7 @@ function AppContent() {
           <HomePage
             products={products}
             categories={categories}
+            shifts={shifts}
             settings={settingsTyped}
             banners={banners}
             searchQuery={searchQuery}
