@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 
-export const SUPER_ADMIN_EMAIL = 'carloschan1890@gmail.com';
+export const SUPER_ADMIN_EMAILS = ['carloschan1890@gmail.com', 'carloschan.oficial@gmail.com'];
 
 export interface AdminRecord {
   email: string;
@@ -33,7 +33,7 @@ function computeAccess(
   if (sessionLoading) return 'loading';
   const email = session?.user.email?.toLowerCase();
   if (!email) return 'signed_out';
-  if (email === SUPER_ADMIN_EMAIL) return 'granted';
+  if (SUPER_ADMIN_EMAILS.includes(email)) return 'granted';
   if (!lookup || lookup.email !== email) return 'loading';
   if (lookup.error) return 'error';
   if (!lookup.record) return 'no_access';
@@ -61,7 +61,7 @@ export function useAdminSession() {
   const email = session?.user.email?.toLowerCase() ?? null;
 
   useEffect(() => {
-    if (!email || email === SUPER_ADMIN_EMAIL) return;
+    if (!email || SUPER_ADMIN_EMAILS.includes(email)) return;
     let cancelled = false;
     supabase
       .from('administradores')
@@ -83,7 +83,7 @@ export function useAdminSession() {
     session,
     access,
     record: lookup?.email === email ? lookup?.record ?? null : null,
-    isSuperAdmin: email === SUPER_ADMIN_EMAIL,
+    isSuperAdmin: email !== null && SUPER_ADMIN_EMAILS.includes(email),
     isAdmin: access === 'granted',
     loading: access === 'loading',
   };
