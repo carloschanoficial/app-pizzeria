@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import type { StoreSettings } from '@/types';
 import { buildLoyaltyRules } from '@/lib/loyaltyRules';
+import { DEFAULT_BUSINESS_NAME } from '@/lib/brandTheme';
 
 interface PerfilPageProps {
   settings: StoreSettings | null;
@@ -26,7 +27,7 @@ export function PerfilPage({ settings, isAdmin, onAdminClick }: PerfilPageProps)
           <User className="h-10 w-10 text-white" />
         </div>
         <h2 className="mt-3 text-xl font-black">Cliente</h2>
-        <p className="text-sm text-white/80">Pizzería Matias</p>
+        <p className="text-sm text-white/80">{settings?.business_name?.trim() || DEFAULT_BUSINESS_NAME}</p>
       </div>
 
       {/* Información de la tienda */}
