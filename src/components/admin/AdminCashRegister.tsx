@@ -2,9 +2,12 @@ import { useState, type FormEvent } from 'react';
 import { Download, Wallet, X } from 'lucide-react';
 import { useCashRegister } from '@/hooks/useCashRegister';
 import { formatPriceDecimal } from '@/lib/format';
+import { calculateExpectedCash, type CashCount } from '@/lib/cashCount';
 import { buildShiftReportPdf } from '@/lib/shiftReportPdf';
+import type { CashRegisterShift } from '@/types';
 import { CashRegisterExpenses } from '@/components/admin/CashRegisterExpenses';
 import { CashRegisterSalesBreakdown } from '@/components/admin/CashRegisterSalesBreakdown';
+import { CashRegisterCountForm } from '@/components/admin/CashRegisterCountForm';
 
 function formatOpenedAt(iso: string): string {
   return new Date(iso).toLocaleString('es-MX', {
@@ -21,12 +24,11 @@ export function AdminCashRegister() {
   const [floatInput, setFloatInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [confirmingClose, setConfirmingClose] = useState(false);
+  const [count, setCount] = useState<CashCount>({});
 
   const isOpen = shift !== null;
   const expensesTotal = Math.round(expenses.reduce((sum, expense) => sum + expense.amount, 0) * 100) / 100;
-  const expectedCash = shift
-    ? Math.round((shift.opening_float + shift.cash_sales - expensesTotal) * 100) / 100
-    : 0;
+  const expectedCash = shift ? calculateExpectedCash(shift.opening_float, shift.cash_sales, expensesTotal) : 0;
 
   const handleOpen = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -39,21 +41,29 @@ export function AdminCashRegister() {
     }
   };
 
-  const handleClose = async () => {
-    setSaving(true);
-    const ok = await closeShift();
-    setSaving(false);
-    if (ok) setConfirmingClose(false);
-  };
-
-  const handleDownloadReport = () => {
-    if (!shift) return;
-    const url = URL.createObjectURL(buildShiftReportPdf(shift, expenses, salesByType));
+  const downloadReport = (report: CashRegisterShift) => {
+    const url = URL.createObjectURL(buildShiftReportPdf(report, expenses, salesByType));
     const link = document.createElement('a');
     link.href = url;
-    link.download = `corte-de-caja-${shift.opened_at.slice(0, 10)}.pdf`;
+    link.download = `corte-de-caja-${report.opened_at.slice(0, 10)}.pdf`;
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  const handleClose = async () => {
+    setSaving(true);
+    const closed = await closeShift(count);
+    setSaving(false);
+    if (closed) {
+      setConfirmingClose(false);
+      setCount({});
+      downloadReport(closed);
+    }
+  };
+
+  const cancelClose = () => {
+    setConfirmingClose(false);
+    setCount({});
   };
 
   return (
@@ -119,7 +129,7 @@ export function AdminCashRegister() {
         {!loading && isOpen && (
           <button
             type="button"
-            onClick={handleDownloadReport}
+            onClick={() => shift && downloadReport(shift)}
             className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-gray-100 py-3 text-sm font-bold text-gray-800 transition hover:bg-gray-200 active:scale-[0.98]"
           >
             <Download className="h-4 w-4" />
@@ -140,12 +150,13 @@ export function AdminCashRegister() {
         {isOpen && confirmingClose && (
           <div className="mt-4 space-y-3 rounded-xl bg-gray-50 p-4">
             <p className="text-sm text-gray-700">
-              Se cerrará el turno con <span className="font-bold">{formatPriceDecimal(expectedCash)}</span> de efectivo esperado. ¿Confirmas?
+              Cuenta el efectivo físico de la caja antes de confirmar el cierre.
             </p>
+            <CashRegisterCountForm expectedCash={expectedCash} count={count} onChange={setCount} />
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={() => setConfirmingClose(false)}
+                onClick={cancelClose}
                 disabled={saving}
                 className="rounded-full bg-white py-3 text-sm font-bold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-100 disabled:opacity-50"
               >

@@ -93,6 +93,10 @@ export interface CashRegisterShift {
   opened_at: string;
   closed_at: string | null;
   created_at: string;
+  expected_cash: number | null;
+  counted_cash: number | null;
+  cash_difference: number | null;
+  cash_count: Record<string, number> | null;
 }
 
 export interface CashRegisterExpense {

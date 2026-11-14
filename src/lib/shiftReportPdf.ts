@@ -1,5 +1,6 @@
 import type { CashRegisterExpense, CashRegisterShift, ShiftSalesByType } from '@/types';
 import { formatPriceDecimal } from '@/lib/format';
+import { CASH_DENOMINATIONS, calculateCashDifference, calculateExpectedCash, countTotal } from '@/lib/cashCount';
 
 type ReportRow = [label: string, value: string];
 
@@ -61,13 +62,40 @@ const DATE_TIME_FORMAT: Intl.DateTimeFormatOptions = {
   minute: '2-digit',
 };
 
+function buildCountRows(shift: CashRegisterShift, expectedCash: number): ReportRow[] {
+  if (shift.cash_count === null || shift.counted_cash === null) {
+    return [['Efectivo físico contado', 'Pendiente de arqueo']];
+  }
+  const countedCash = countTotal(shift.cash_count);
+  const difference = calculateCashDifference(countedCash, expectedCash);
+  const denominationRows: ReportRow[] = CASH_DENOMINATIONS.filter(
+    (denomination) => (shift.cash_count?.[String(denomination)] ?? 0) > 0,
+  ).map((denomination) => {
+    const quantity = shift.cash_count?.[String(denomination)] ?? 0;
+    return [
+      `Billetes y monedas ${formatPriceDecimal(denomination)} x ${quantity}`,
+      formatPriceDecimal(denomination * quantity),
+    ];
+  });
+  const differenceLabel = difference < 0 ? 'Faltante' : difference > 0 ? 'Sobrante' : 'Caja cuadrada';
+  return [
+    ['Arqueo de efectivo', ''],
+    ...denominationRows,
+    ['Efectivo físico contado', formatPriceDecimal(countedCash)],
+    [
+      'Diferencia final',
+      difference === 0 ? differenceLabel : `${differenceLabel}: ${formatPriceDecimal(Math.abs(difference))}`,
+    ],
+  ];
+}
+
 export function buildShiftReportPdf(
   shift: CashRegisterShift,
   expenses: CashRegisterExpense[],
   sales: ShiftSalesByType,
 ): Blob {
   const expensesTotal = Math.round(expenses.reduce((sum, expense) => sum + expense.amount, 0) * 100) / 100;
-  const expectedCash = Math.round((shift.opening_float + shift.cash_sales - expensesTotal) * 100) / 100;
+  const expectedCash = calculateExpectedCash(shift.opening_float, shift.cash_sales, expensesTotal);
   const expenseRows: ReportRow[] = expenses.map((expense) => [
     `Gasto: ${expense.description}`,
     formatPriceDecimal(expense.amount),
@@ -83,6 +111,7 @@ export function buildShiftReportPdf(
     ...expenseRows,
     ['Total de gastos', formatPriceDecimal(expensesTotal)],
     ['Efectivo esperado', formatPriceDecimal(expectedCash)],
+    ...buildCountRows(shift, expectedCash),
     ['Generado el', new Date().toLocaleString('es-MX', DATE_TIME_FORMAT)],
   ];
   const content = buildContentStream('Corte de Caja', rows);

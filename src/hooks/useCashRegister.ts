@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { calculateCashDifference, calculateExpectedCash, countTotal, type CashCount } from '@/lib/cashCount';
 import type {
   CashRegisterExpense,
   CashRegisterShift,
@@ -133,22 +134,36 @@ export function useCashRegister() {
     [shiftId],
   );
 
-  const closeShift = useCallback(async (): Promise<boolean> => {
-    if (!shift) return false;
-    const { data, error: updateError } = await supabase
-      .from('cash_register_shifts')
-      .update({ status: 'closed', closed_at: new Date().toISOString() })
-      .eq('id', shift.id)
-      .eq('status', 'open')
-      .select('id');
-    if (updateError || !data || data.length === 0) {
-      setError('No se pudo cerrar el corte de caja. Intenta de nuevo.');
-      return false;
-    }
-    setShift(null);
-    setError(null);
-    return true;
-  }, [shift]);
+  const closeShift = useCallback(
+    async (count: CashCount): Promise<CashRegisterShift | null> => {
+      if (!shift) return null;
+      const expensesTotal = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+      const expectedCash = calculateExpectedCash(shift.opening_float, shift.cash_sales, expensesTotal);
+      const countedCash = countTotal(count);
+      const { data, error: updateError } = await supabase
+        .from('cash_register_shifts')
+        .update({
+          status: 'closed',
+          closed_at: new Date().toISOString(),
+          expected_cash: expectedCash,
+          counted_cash: countedCash,
+          cash_difference: calculateCashDifference(countedCash, expectedCash),
+          cash_count: count,
+        })
+        .eq('id', shift.id)
+        .eq('status', 'open')
+        .select()
+        .maybeSingle();
+      if (updateError || !data) {
+        setError('No se pudo cerrar el corte de caja. Intenta de nuevo.');
+        return null;
+      }
+      setShift(null);
+      setError(null);
+      return data as CashRegisterShift;
+    },
+    [shift, expenses],
+  );
 
   return {
     shift,
