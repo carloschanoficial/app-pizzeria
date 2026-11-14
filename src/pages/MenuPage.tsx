@@ -3,11 +3,13 @@ import { ProductCard } from '@/components/ProductCard';
 import { HalfAndHalfCard } from '@/components/HalfAndHalfCard';
 import { ProductListCard } from '@/components/ProductListCard';
 import { ViewModeToggle, type ProductViewMode } from '@/components/ViewModeToggle';
-import type { Product, ServiceShift } from '@/types';
+import { ShiftStatus } from '@/components/ShiftStatus';
+import type { Product, ServiceShift, StoreSettings } from '@/types';
 
 interface MenuPageProps {
   products: Product[];
   shifts: ServiceShift[];
+  settings: StoreSettings | null;
   searchQuery: string;
   onProductClick: (p: Product) => void;
   onHalfHalfAdded: () => void;
@@ -16,6 +18,7 @@ interface MenuPageProps {
 export function MenuPage({
   products,
   shifts,
+  settings,
   searchQuery,
   onProductClick,
   onHalfHalfAdded,
@@ -44,6 +47,7 @@ export function MenuPage({
     return result;
   }, [products, activeShiftId, searchQuery]);
 
+  const activeShift = shiftTabs.find((s) => s.id === activeShiftId) ?? null;
   const pizzas = products.filter((p) => p.sizes !== null && p.is_available);
   const showHalfAndHalf = filtered.some((p) => p.sizes !== null);
 
@@ -74,6 +78,8 @@ export function MenuPage({
           </button>
         ))}
       </div>
+
+      {activeShift && <ShiftStatus shift={activeShift} settings={settings} />}
 
       {showHalfAndHalf && <HalfAndHalfCard pizzas={pizzas} onAdded={onHalfHalfAdded} />}
 

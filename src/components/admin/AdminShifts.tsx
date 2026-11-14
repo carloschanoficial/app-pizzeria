@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import { Plus, Pencil, X, Check, Layers } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { ScheduleEditor } from '@/components/admin/ScheduleEditor';
+import {
+  DEFAULT_SCHEDULE,
+  formatWeekSchedule,
+  parseSchedule,
+  serializeSchedule,
+  type WeekSchedule,
+} from '@/lib/storeHours';
 import type { Product, ServiceShift } from '@/types';
 
 interface AdminShiftsProps {
@@ -14,6 +22,8 @@ export function AdminShifts({ shifts, products, onChanged }: AdminShiftsProps) {
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [isActive, setIsActive] = useState(true);
+  const [ownSchedule, setOwnSchedule] = useState(false);
+  const [schedule, setSchedule] = useState<WeekSchedule>(DEFAULT_SCHEDULE);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,6 +31,8 @@ export function AdminShifts({ shifts, products, onChanged }: AdminShiftsProps) {
     setEditing(null);
     setName('');
     setIsActive(true);
+    setOwnSchedule(false);
+    setSchedule(DEFAULT_SCHEDULE);
     setError(null);
     setShowForm(true);
   };
@@ -29,6 +41,8 @@ export function AdminShifts({ shifts, products, onChanged }: AdminShiftsProps) {
     setEditing(s);
     setName(s.name);
     setIsActive(s.is_active);
+    setOwnSchedule(s.auto_schedule !== null);
+    setSchedule(parseSchedule(s.auto_schedule));
     setError(null);
     setShowForm(true);
   };
@@ -38,7 +52,11 @@ export function AdminShifts({ shifts, products, onChanged }: AdminShiftsProps) {
     if (!trimmed) return;
     setSaving(true);
     setError(null);
-    const payload = { name: trimmed, is_active: isActive };
+    const payload = {
+      name: trimmed,
+      is_active: isActive,
+      auto_schedule: ownSchedule ? serializeSchedule(schedule) : null,
+    };
     const { error: saveError } = editing
       ? await supabase.from('service_shifts').update(payload).eq('id', editing.id)
       : await supabase.from('service_shifts').insert({ ...payload, sort_order: shifts.length });
@@ -97,6 +115,11 @@ export function AdminShifts({ shifts, products, onChanged }: AdminShiftsProps) {
               <p className={`text-xs ${s.is_active ? 'text-green-600' : 'text-gray-400'}`}>
                 {s.is_active ? 'Activo' : 'Inactivo'}
               </p>
+              <p className="mt-0.5 text-[11px] text-gray-400 truncate">
+                {s.auto_schedule === null
+                  ? 'Usa el horario de la tienda'
+                  : formatWeekSchedule(parseSchedule(s.auto_schedule))}
+              </p>
             </div>
             <button
               onClick={() => openEdit(s)}
@@ -138,7 +161,7 @@ export function AdminShifts({ shifts, products, onChanged }: AdminShiftsProps) {
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setShowForm(false)}
           />
-          <div className="relative w-full max-w-sm rounded-t-2xl bg-white p-5 sm:rounded-2xl">
+          <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-t-2xl bg-white p-5 sm:rounded-2xl">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-900">
                 {editing ? 'Editar Turno' : 'Nuevo Turno'}
@@ -180,6 +203,39 @@ export function AdminShifts({ shifts, products, onChanged }: AdminShiftsProps) {
                   />
                 </button>
               </div>
+              <div className="rounded-xl bg-gray-50 p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-gray-700">Horario propio</p>
+                    <p className="text-[11px] text-gray-400">
+                      {ownSchedule
+                        ? 'Este turno usa sus propios días y horas.'
+                        : 'Sigue el horario general de la tienda.'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={ownSchedule}
+                    onClick={() => setOwnSchedule(!ownSchedule)}
+                    className={`relative h-6 w-11 flex-shrink-0 rounded-full transition ${
+                      ownSchedule ? 'bg-green-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                        ownSchedule ? 'translate-x-5' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </button>
+                </div>
+                {ownSchedule && (
+                  <div className="mt-3">
+                    <ScheduleEditor schedule={schedule} onChange={setSchedule} />
+                  </div>
+                )}
+              </div>
+              {error && <p className="text-xs font-medium text-red-500">{error}</p>}
               <button
                 onClick={handleSave}
                 disabled={saving || !name.trim()}

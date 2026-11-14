@@ -155,6 +155,7 @@ function AppContent() {
           <MenuPage
             products={products}
             shifts={shifts}
+            settings={settingsTyped}
             searchQuery={searchQuery}
             onProductClick={handleProductClick}
             onHalfHalfAdded={() => setToastShow(true)}

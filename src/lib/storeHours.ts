@@ -1,4 +1,4 @@
-import type { StoreSettings } from '@/types';
+import type { ServiceShift, StoreSettings } from '@/types';
 
 export interface DaySchedule {
   open: boolean;
@@ -54,7 +54,6 @@ export function serializeSchedule(schedule: WeekSchedule): string {
 
 function isInRange(timeStr: string, now: Date): boolean {
   const [openH, openM] = timeStr.split(':').map(Number);
-  const day = now.getDay();
   const hour = now.getHours();
   const minute = now.getMinutes();
   const currentMin = hour * 60 + minute;
@@ -62,13 +61,14 @@ function isInRange(timeStr: string, now: Date): boolean {
   return currentMin >= openMin && currentMin < openMin + 9 * 60;
 }
 
-export function isStoreAutoOpen(settings?: StoreSettings | null): boolean {
-  const schedule = parseSchedule(settings?.auto_schedule);
-  const now = new Date();
-  const day = now.getDay();
-  const dayConfig = schedule[day];
+function isScheduleOpenNow(schedule: WeekSchedule, now: Date): boolean {
+  const dayConfig = schedule[now.getDay()];
   if (!dayConfig || !dayConfig.open) return false;
   return isInRange(dayConfig.openTime, now);
+}
+
+export function isStoreAutoOpen(settings?: StoreSettings | null): boolean {
+  return isScheduleOpenNow(parseSchedule(settings?.auto_schedule), new Date());
 }
 
 export function getStoreOpen(settings: StoreSettings | null): boolean {
@@ -77,6 +77,25 @@ export function getStoreOpen(settings: StoreSettings | null): boolean {
     return settings.manual_is_open === 'true';
   }
   return isStoreAutoOpen(settings);
+}
+
+export function getShiftSchedule(
+  shift: Pick<ServiceShift, 'auto_schedule'>,
+  settings?: StoreSettings | null,
+): WeekSchedule {
+  return shift.auto_schedule
+    ? parseSchedule(shift.auto_schedule)
+    : parseSchedule(settings?.auto_schedule);
+}
+
+export function isShiftOpen(
+  shift: Pick<ServiceShift, 'auto_schedule'>,
+  settings: StoreSettings | null,
+): boolean {
+  if (settings?.manual_override === 'manual') {
+    return settings.manual_is_open === 'true';
+  }
+  return isScheduleOpenNow(getShiftSchedule(shift, settings), new Date());
 }
 
 const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
@@ -96,8 +115,7 @@ function formatDayRange(startIdx: number, endIdx: number): string {
   return `${first} a ${last}`;
 }
 
-export function getScheduleText(settings?: StoreSettings | null): string {
-  const schedule = parseSchedule(settings?.auto_schedule);
+export function formatWeekSchedule(schedule: WeekSchedule): string {
   const runs: { startIdx: number; endIdx: number; cfg: DaySchedule }[] = [];
 
   WEEK_ORDER.forEach((day, idx) => {
@@ -122,4 +140,8 @@ export function getScheduleText(settings?: StoreSettings | null): string {
       return `${days}: ${formatClock(cfg.openTime)} - ${formatClock(cfg.closeTime)}`;
     })
     .join(' · ');
+}
+
+export function getScheduleText(settings?: StoreSettings | null): string {
+  return formatWeekSchedule(parseSchedule(settings?.auto_schedule));
 }

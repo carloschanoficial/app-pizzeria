@@ -4,6 +4,7 @@ import type { Product, Category, PromoBanner as PromoBannerType, ServiceShift, S
 import { ProductCard } from '@/components/ProductCard';
 import { PromoBanner } from '@/components/PromoBanner';
 import { getStoreOpen, getScheduleText } from '@/lib/storeHours';
+import { ShiftStatus } from '@/components/ShiftStatus';
 import type { TabKey } from '@/components/BottomNav';
 
 interface HomePageProps {
@@ -37,13 +38,13 @@ export function HomePage({
 
   const bestsellers = filtered.filter((p) => p.is_bestseller);
   const sections = useMemo(() => {
-    const grouped = shifts
-      .map((s) => ({ key: s.id, title: s.name, items: filtered.filter((p) => p.shift_id === s.id) }))
+    const grouped: { key: string; title: string; shift: ServiceShift | null; items: Product[] }[] = shifts
+      .map((s) => ({ key: s.id, title: s.name, shift: s, items: filtered.filter((p) => p.shift_id === s.id) }))
       .filter((g) => g.items.length > 0);
     const shiftIds = new Set(shifts.map((s) => s.id));
     const unassigned = filtered.filter((p) => !p.shift_id || !shiftIds.has(p.shift_id));
     if (unassigned.length > 0) {
-      grouped.push({ key: 'sin-turno', title: 'Nuestra carta', items: unassigned });
+      grouped.push({ key: 'sin-turno', title: 'Nuestra carta', shift: null, items: unassigned });
     }
     return grouped;
   }, [shifts, filtered]);
@@ -92,7 +93,10 @@ export function HomePage({
       {/* Secciones por turno */}
       {sections.map((section) => (
         <div key={section.key}>
-          <h2 className="mb-3 text-lg font-black text-gray-900">{section.title}</h2>
+          <div className="mb-3 space-y-1.5">
+            <h2 className="text-lg font-black text-gray-900">{section.title}</h2>
+            {section.shift && <ShiftStatus shift={section.shift} settings={settings} />}
+          </div>
           <div className="grid grid-cols-2 gap-3">
             {section.items.map((p) => (
               <ProductCard key={p.id} product={p} onClick={() => onProductClick(p)} />

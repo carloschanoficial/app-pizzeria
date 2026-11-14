@@ -33,6 +33,7 @@ export interface ServiceShift {
   name: string;
   is_active: boolean;
   sort_order: number;
+  auto_schedule: string | null;
   created_at: string;
 }
 
