@@ -63,7 +63,23 @@ export function AdminProducts({ products, categories, shifts, onChanged }: Admin
   const [form, setForm] = useState<ProductForm>({ ...EMPTY_FORM });
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [activeShiftId, setActiveShiftId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const activeShifts = shifts.filter((s) => s.is_active);
+  const activeShift = activeShifts.find((s) => s.id === activeShiftId) ?? null;
+  const visibleProducts = activeShift
+    ? products.filter((p) => p.shift_id === activeShift.id)
+    : products;
+
+  const shiftTabs = [
+    { id: null as string | null, name: 'Todos', count: products.length },
+    ...activeShifts.map((s) => ({
+      id: s.id as string | null,
+      name: s.name,
+      count: products.filter((p) => p.shift_id === s.id).length,
+    })),
+  ];
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -78,7 +94,11 @@ export function AdminProducts({ products, categories, shifts, onChanged }: Admin
 
   const openNew = () => {
     setEditing(null);
-    setForm({ ...EMPTY_FORM, category_id: categories[0]?.id || '' });
+    setForm({
+      ...EMPTY_FORM,
+      category_id: categories[0]?.id || '',
+      shift_id: activeShiftId ?? '',
+    });
     setShowForm(true);
   };
 
@@ -157,15 +177,41 @@ export function AdminProducts({ products, categories, shifts, onChanged }: Admin
 
   return (
     <div className="p-4 space-y-3">
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide">
+        {shiftTabs.map((tab) => {
+          const active = activeShiftId === tab.id;
+          return (
+            <button
+              key={tab.id ?? 'all'}
+              onClick={() => setActiveShiftId(tab.id)}
+              className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition ${
+                active ? 'bg-red-600 text-white' : 'bg-white text-gray-600 ring-1 ring-gray-200'
+              }`}
+            >
+              {tab.name}
+              <span className={`rounded-full px-1.5 text-[10px] ${active ? 'bg-white/20' : 'bg-gray-100 text-gray-500'}`}>
+                {tab.count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
       <button
         onClick={openNew}
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 py-3 text-sm font-bold text-white transition hover:bg-red-700"
       >
         <Plus className="h-5 w-5" />
-        Agregar Producto
+        {activeShift ? `Agregar a ${activeShift.name}` : 'Agregar Producto'}
       </button>
 
-      {products.map((p) => (
+      {visibleProducts.length === 0 && (
+        <p className="py-10 text-center text-sm text-gray-400">
+          {activeShift ? `Aún no hay productos en ${activeShift.name}` : 'Aún no hay productos'}
+        </p>
+      )}
+
+      {visibleProducts.map((p) => (
         <div
           key={p.id}
           className="flex items-center gap-3 rounded-xl bg-white p-3 shadow-sm ring-1 ring-gray-100"
