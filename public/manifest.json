@@ -1,6 +1,6 @@
 {
-  "name": "Pizzería Matias",
-  "short_name": "Pizzería Matias",
+  "name": "Tu Menú",
+  "short_name": "Tu Menú",
   "description": "Pide tus pizzas favoritas con envío a domicilio",
   "start_url": "/",
   "scope": "/",

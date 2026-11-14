@@ -1,14 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#dc2626"/>
-  <circle cx="256" cy="256" r="170" fill="#fbbf24"/>
-  <circle cx="256" cy="256" r="170" fill="none" stroke="#b45309" stroke-width="8"/>
-  <circle cx="190" cy="200" r="22" fill="#dc2626"/>
-  <circle cx="310" cy="210" r="18" fill="#dc2626"/>
-  <circle cx="220" cy="300" r="20" fill="#dc2626"/>
-  <circle cx="320" cy="290" r="16" fill="#dc2626"/>
-  <circle cx="180" cy="250" r="14" fill="#dc2626"/>
-  <circle cx="270" cy="170" r="12" fill="#16a34a"/>
-  <circle cx="300" cy="260" r="10" fill="#16a34a"/>
-  <circle cx="210" cy="230" r="8" fill="#16a34a"/>
-  <circle cx="250" cy="330" r="9" fill="#16a34a"/>
+  <rect width="512" height="512" rx="96" fill="#1f2937"/>
+  <rect x="136" y="150" width="240" height="40" rx="20" fill="#f9fafb"/>
+  <rect x="136" y="236" width="240" height="40" rx="20" fill="#f9fafb"/>
+  <rect x="136" y="322" width="150" height="40" rx="20" fill="#f9fafb"/>
 </svg>
