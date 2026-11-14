@@ -241,7 +241,7 @@ export function CartSheet({ onClose, onOrderPlaced }: CartSheetProps) {
     }
 
     setSubmitting(true);
-    let updatedStamps = loyaltyStamps;
+    const updatedStamps = hasFreeReward ? 0 : Math.min(loyaltyStamps + 1, 6);
 
     try {
       if (phone.trim()) {
@@ -249,7 +249,6 @@ export function CartSheet({ onClose, onOrderPlaced }: CartSheetProps) {
           await supabase.rpc('redeem_wallet_for_order', {
             p_phone: phone.trim(),
             p_requested: walletDiscount,
-            p_cashback: walletCashback,
           });
           refetchWallet();
         } catch (e) {
@@ -273,69 +272,14 @@ export function CartSheet({ onClose, onOrderPlaced }: CartSheetProps) {
           coupon_code: appliedCoupon?.codigo ?? null,
           coupon_discount_percent: appliedCoupon?.percent ?? null,
           coupon_discount_amount: couponDiscount > 0 ? couponDiscount : null,
+          wallet_cashback: walletCashback,
         });
       } catch (e) {
         console.error('Error orden:', e);
       }
 
-      if (!hasFreeReward && phone.trim()) {
+      if (phone.trim()) {
         setCustomerPhone(phone.trim());
-        try {
-          const { data: existing } = await supabase
-            .from('loyalty_cards')
-            .select('*')
-            .eq('customer_phone', phone.trim())
-            .maybeSingle();
-
-          const now = Date.now();
-          if (existing) {
-            const card = existing as {
-              id: string;
-              stamps: number;
-              reward_claimed: boolean;
-              last_stamp_at: string | null;
-            };
-            const lastStampMs = card.last_stamp_at ? new Date(card.last_stamp_at).getTime() : 0;
-            const isExpired = card.stamps > 0 && now - lastStampMs > THIRTY_DAYS_MS;
-            const baseStamps = isExpired ? 0 : card.stamps;
-            updatedStamps = Math.min(baseStamps + 1, 6);
-            await supabase
-              .from('loyalty_cards')
-              .update({
-                stamps: updatedStamps,
-                last_stamp_at: new Date().toISOString(),
-                last_order_at: new Date().toISOString(),
-              })
-              .eq('id', card.id);
-          } else {
-            updatedStamps = 1;
-            await supabase.from('loyalty_cards').insert({
-              customer_phone: phone.trim(),
-              stamps: 1,
-              last_stamp_at: new Date().toISOString(),
-              last_order_at: new Date().toISOString(),
-            });
-          }
-        } catch (e) {
-          console.error('Error lealtad:', e);
-        }
-      }
-
-      if (hasFreeReward && phone.trim()) {
-        updatedStamps = 0;
-        try {
-          const { error: resetError } = await supabase
-            .from('loyalty_cards')
-            .update({
-              stamps: 0,
-              reward_claimed: false,
-              last_order_at: new Date().toISOString(),
-            })
-            .eq('customer_phone', phone.trim());
-          if (resetError) console.error('Error reinicio lealtad:', resetError);
-        } catch (e) {
-          console.error('Error reinicio lealtad:', e);
-        }
       }
     } catch (err) {
       console.error('Error general:', err);
