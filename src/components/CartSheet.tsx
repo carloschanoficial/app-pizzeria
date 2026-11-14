@@ -61,6 +61,7 @@ export function CartSheet({ onClose, onOrderPlaced }: CartSheetProps) {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('efectivo');
   const [cashAmount, setCashAmount] = useState<number | null>(null);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [placedWhatsAppUrl, setPlacedWhatsAppUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
   const { wallet, refetch: refetchWallet, canRedeem, threshold: walletThreshold, cashback: walletCashback } = useWallet(phone.trim() || null, getWalletRules(settings));
@@ -287,12 +288,9 @@ export function CartSheet({ onClose, onOrderPlaced }: CartSheetProps) {
     } finally {
       setSubmitting(false);
       const message = buildWhatsAppMessage(updatedStamps);
-      const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
-
+      setPlacedWhatsAppUrl(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`);
       clearCart();
       onOrderPlaced();
-      window.location.href = waUrl;
-      onClose();
     }
   };
 
@@ -322,7 +320,32 @@ export function CartSheet({ onClose, onOrderPlaced }: CartSheetProps) {
           </button>
         </div>
 
-        {cart.length === 0 ? (
+        {placedWhatsAppUrl ? (
+          <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
+              <MessageCircle className="h-10 w-10 text-green-600" />
+            </div>
+            <p className="mt-4 text-base font-bold text-gray-900">Tu pedido se guardó</p>
+            <p className="mt-1 text-sm text-gray-500">
+              Toca el botón para enviarlo por WhatsApp y confirmarlo con la pizzería.
+            </p>
+            <a
+              href={placedWhatsAppUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-green-600 py-3.5 text-sm font-bold text-white shadow-lg transition active:scale-[0.98] hover:bg-green-700"
+            >
+              <MessageCircle className="h-5 w-5" />
+              Enviar pedido por WhatsApp
+            </a>
+            <button
+              onClick={onClose}
+              className="mt-3 w-full py-2 text-xs font-bold text-gray-600 underline underline-offset-2 transition hover:text-gray-900"
+            >
+              Cerrar
+            </button>
+          </div>
+        ) : cart.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gray-100">
               <ShoppingBag className="h-10 w-10 text-gray-300" />
