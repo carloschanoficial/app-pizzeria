@@ -1,6 +1,12 @@
 import type { CashRegisterExpense, CashRegisterShift, ShiftSalesByType } from '@/types';
 import { formatPriceDecimal } from '@/lib/format';
-import { CASH_DENOMINATIONS, calculateCashDifference, calculateExpectedCash, countTotal } from '@/lib/cashCount';
+import {
+  CASH_DENOMINATIONS,
+  CENTAVOS_KEY,
+  calculateCashDifference,
+  calculateExpectedCash,
+  countTotal,
+} from '@/lib/cashCount';
 
 type ReportRow = [label: string, value: string];
 
@@ -77,6 +83,10 @@ function buildCountRows(shift: CashRegisterShift, expectedCash: number): ReportR
       formatPriceDecimal(denomination * quantity),
     ];
   });
+  const centavos = shift.cash_count[CENTAVOS_KEY] ?? 0;
+  if (centavos > 0) {
+    denominationRows.push([`Centavos x ${centavos}`, formatPriceDecimal(centavos / 100)]);
+  }
   const differenceLabel = difference < 0 ? 'Faltante' : difference > 0 ? 'Sobrante' : 'Caja cuadrada';
   return [
     ['Arqueo de efectivo', ''],

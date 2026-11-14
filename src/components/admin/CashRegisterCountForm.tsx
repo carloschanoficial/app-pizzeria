@@ -1,5 +1,11 @@
 import { Calculator } from 'lucide-react';
-import { CASH_DENOMINATIONS, calculateCashDifference, countTotal, type CashCount } from '@/lib/cashCount';
+import {
+  CASH_DENOMINATIONS,
+  CENTAVOS_KEY,
+  calculateCashDifference,
+  countTotal,
+  type CashCount,
+} from '@/lib/cashCount';
 import { formatPriceDecimal } from '@/lib/format';
 
 interface CashRegisterCountFormProps {
@@ -8,9 +14,9 @@ interface CashRegisterCountFormProps {
   onChange: (count: CashCount) => void;
 }
 
-function parseCount(raw: string): number {
+function parseCount(raw: string, max = Infinity): number {
   const n = Math.floor(Number(raw));
-  return Number.isFinite(n) && n > 0 ? n : 0;
+  return Number.isFinite(n) && n > 0 ? Math.min(n, max) : 0;
 }
 
 export function CashRegisterCountForm({ expectedCash, count, onChange }: CashRegisterCountFormProps) {
@@ -22,6 +28,12 @@ export function CashRegisterCountForm({ expectedCash, count, onChange }: CashReg
   const updateDenomination = (denomination: number, raw: string) => {
     onChange({ ...count, [String(denomination)]: parseCount(raw) });
   };
+
+  const updateCentavos = (raw: string) => {
+    onChange({ ...count, [CENTAVOS_KEY]: parseCount(raw, 99) });
+  };
+
+  const centavos = count[CENTAVOS_KEY] ?? 0;
 
   return (
     <div className="mt-4 space-y-4 rounded-xl bg-gray-50 p-4">
@@ -56,7 +68,26 @@ export function CashRegisterCountForm({ expectedCash, count, onChange }: CashReg
             </label>
           );
         })}
+        <label className="col-span-2 flex items-center gap-2 rounded-xl bg-white p-2 ring-1 ring-gray-200">
+          <span className="shrink-0 text-xs font-bold text-gray-700">Centavos</span>
+          <input
+            type="number"
+            inputMode="numeric"
+            min="0"
+            max="99"
+            step="1"
+            aria-label="Centavos sueltos (0 a 99)"
+            value={centavos === 0 ? '' : centavos}
+            placeholder="0"
+            onChange={(e) => updateCentavos(e.target.value)}
+            className="w-full min-w-0 rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm text-gray-900 outline-none transition focus:border-red-500"
+          />
+          <span className="w-16 shrink-0 text-right text-xs font-semibold text-gray-500">
+            {formatPriceDecimal(centavos / 100)}
+          </span>
+        </label>
       </div>
+      <p className="-mt-2 text-xs text-gray-500">Escribe solo los centavos, por ejemplo 64 para $0.64.</p>
 
       <dl className="space-y-2 border-t border-gray-200 pt-3 text-sm">
         <div className="flex items-center justify-between">
