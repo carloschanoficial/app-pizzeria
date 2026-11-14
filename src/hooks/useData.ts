@@ -225,11 +225,7 @@ export function useWallet(phone: string | null, rules: WalletRules) {
         const row = data as VirtualWallet;
         const lastActivityMs = new Date(row.last_credited_at ?? row.created_at).getTime();
         if (Number(row.balance) > 0 && Date.now() - lastActivityMs > WALLET_INACTIVITY_MS) {
-          const { error } = await supabase
-            .from('virtual_wallets')
-            .update({ balance: 0 })
-            .eq('customer_phone', phone);
-          setWallet(error ? row : { ...row, balance: 0 });
+          setWallet({ ...row, balance: 0 });
         } else {
           setWallet(row);
         }
