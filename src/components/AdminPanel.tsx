@@ -16,9 +16,10 @@ import { AdminPlans } from '@/components/admin/AdminPlans';
 import { AdminPaymentInfo } from '@/components/admin/AdminPaymentInfo';
 import { AdminPlanRequests } from '@/components/admin/AdminPlanRequests';
 import { AdminCashRegister } from '@/components/admin/AdminCashRegister';
+import { AdminOrders } from '@/components/admin/AdminOrders';
 import { InstallAppButton } from '@/components/InstallAppButton';
 import type { InstallPromptState } from '@/hooks/useInstallPrompt';
-import { ArrowLeft, Pizza, Tag, Settings, Image, Users, LogOut, CreditCard, Wallet } from 'lucide-react';
+import { ArrowLeft, Pizza, Tag, Settings, Image, Users, LogOut, CreditCard, Wallet, ClipboardList } from 'lucide-react';
 
 interface AdminPanelProps {
   isSuperAdmin: boolean;
@@ -26,7 +27,7 @@ interface AdminPanelProps {
   install: InstallPromptState;
 }
 
-type AdminTab = 'productos' | 'extras' | 'banners' | 'clientes' | 'config' | 'suscripciones' | 'caja';
+type AdminTab = 'productos' | 'extras' | 'banners' | 'pedidos' | 'clientes' | 'config' | 'suscripciones' | 'caja';
 
 export function AdminPanel({ isSuperAdmin, onExit, install }: AdminPanelProps) {
   const [tab, setTab] = useState<AdminTab>('productos');
@@ -64,6 +65,7 @@ export function AdminPanel({ isSuperAdmin, onExit, install }: AdminPanelProps) {
     { key: 'productos', label: 'Productos', icon: Pizza },
     { key: 'extras', label: 'Ingredientes', icon: Tag },
     { key: 'banners', label: 'Banners', icon: Image },
+    { key: 'pedidos', label: 'Pedidos', icon: ClipboardList },
     { key: 'clientes', label: 'Clientes', icon: Users },
     { key: 'config', label: 'Config', icon: Settings },
     { key: 'caja', label: 'Corte de Caja', icon: Wallet },
@@ -137,6 +139,8 @@ export function AdminPanel({ isSuperAdmin, onExit, install }: AdminPanelProps) {
           <AdminExtras extras={extras} onChanged={fetchAll} />
         ) : tab === 'banners' ? (
           <AdminBanners onChanged={fetchAll} />
+        ) : tab === 'pedidos' ? (
+          <AdminOrders />
         ) : tab === 'clientes' ? (
           <AdminCustomers onChanged={fetchAll} rewardName={settings?.loyalty_reward_name || 'Pizza Chica Hawaiana GRATIS'} />
         ) : tab === 'suscripciones' && isSuperAdmin ? (
