@@ -6,6 +6,7 @@ import {
   Settings,
   ChevronRight,
   Gift,
+  LogIn,
 } from 'lucide-react';
 import type { StoreSettings } from '@/types';
 import { buildLoyaltyRules } from '@/lib/loyaltyRules';
@@ -77,20 +78,22 @@ export function PerfilPage({ settings, isAdmin, onAdminClick }: PerfilPageProps)
         </ul>
       </div>
 
-      {isAdmin && (
-        <button
-          onClick={onAdminClick}
-          className="flex w-full items-center gap-3 rounded-2xl bg-white px-4 py-3 text-left shadow-sm ring-1 ring-gray-100 transition hover:bg-gray-50"
-        >
+      <button
+        onClick={onAdminClick}
+        className="flex w-full items-center gap-3 rounded-2xl bg-white px-4 py-3 text-left shadow-sm ring-1 ring-gray-100 transition hover:bg-gray-50"
+      >
+        {isAdmin ? (
           <Settings className="h-5 w-5 text-gray-400" />
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-500">
-              Panel de Administración
-            </p>
-          </div>
-          <ChevronRight className="h-4 w-4 text-gray-300" />
-        </button>
-      )}
+        ) : (
+          <LogIn className="h-5 w-5 text-red-600" />
+        )}
+        <div className="flex-1">
+          <p className="text-sm font-medium text-gray-500">
+            {isAdmin ? 'Panel de Administración' : 'Iniciar sesión / Acceso Administrador'}
+          </p>
+        </div>
+        <ChevronRight className="h-4 w-4 text-gray-300" />
+      </button>
     </div>
   );
 }
