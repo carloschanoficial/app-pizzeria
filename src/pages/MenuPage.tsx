@@ -39,7 +39,7 @@ export function MenuPage({
     return result;
   }, [products, activeCategory, searchQuery]);
 
-  const pizzas = products.filter((p) => p.sizes !== null);
+  const pizzas = products.filter((p) => p.sizes !== null && p.is_available);
   const isAllOrPizzas = !activeCategory || activeCategory === categories.find((c) => c.slug === 'pizzas')?.id;
 
   return (

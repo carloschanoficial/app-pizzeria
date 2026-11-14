@@ -22,6 +22,7 @@ interface ProductForm {
   is_bestseller: boolean;
   discount_percent: number;
   is_active: boolean;
+  is_available: boolean;
   has_sizes: boolean;
   price_chica: string;
   price_mediana: string;
@@ -38,6 +39,7 @@ const EMPTY_FORM: ProductForm = {
   is_bestseller: false,
   discount_percent: 0,
   is_active: true,
+  is_available: true,
   has_sizes: true,
   price_chica: '',
   price_mediana: '',
@@ -88,6 +90,7 @@ export function AdminProducts({ products, categories, onChanged }: AdminProducts
       is_bestseller: p.is_bestseller,
       discount_percent: p.discount_percent,
       is_active: p.is_active,
+      is_available: p.is_available,
       has_sizes: p.sizes !== null,
       price_chica: p.sizes?.chica != null ? String(p.sizes.chica) : '',
       price_mediana: p.sizes?.mediana != null ? String(p.sizes.mediana) : '',
@@ -123,6 +126,7 @@ export function AdminProducts({ products, categories, onChanged }: AdminProducts
       is_bestseller: form.is_bestseller,
       discount_percent: Number(form.discount_percent) || 0,
       is_active: form.is_active,
+      is_available: form.is_available,
       sizes,
     };
 
@@ -182,6 +186,7 @@ export function AdminProducts({ products, categories, onChanged }: AdminProducts
                 <span className="text-yellow-600 font-bold">-{p.discount_percent}%</span>
               )}
               {!p.is_active && <span className="text-gray-400">Inactivo</span>}
+              {!p.is_available && <span className="font-bold text-red-500">Agotado</span>}
             </div>
           </div>
           <button
@@ -356,6 +361,30 @@ export function AdminProducts({ products, categories, onChanged }: AdminProducts
                   />
                 </Field>
               )}
+
+              <div className="flex items-center justify-between rounded-xl bg-gray-50 px-3 py-2.5">
+                <div>
+                  <p className="text-sm font-bold text-gray-700">Disponibilidad</p>
+                  <p className="text-[11px] text-gray-400">
+                    {form.is_available ? 'Disponible para pedir' : 'Se muestra como agotado'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={form.is_available}
+                  onClick={() => setForm({ ...form, is_available: !form.is_available })}
+                  className={`relative h-6 w-11 flex-shrink-0 rounded-full transition ${
+                    form.is_available ? 'bg-green-500' : 'bg-gray-300'
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                      form.is_available ? 'translate-x-5' : 'translate-x-0.5'
+                    }`}
+                  />
+                </button>
+              </div>
 
               <div className="flex gap-4">
                 <label className="flex items-center gap-2">

@@ -54,7 +54,7 @@ export function ProductDetailSheet({
   );
 
   const otherPizzas = useMemo(
-    () => allPizzas.filter((p) => p.id !== product.id),
+    () => allPizzas.filter((p) => p.id !== product.id && p.is_available),
     [allPizzas, product.id],
   );
 
@@ -89,6 +89,7 @@ export function ProductDetailSheet({
   };
 
   const canAdd = () => {
+    if (!product.is_available) return false;
     if (!isPizza) return true;
     if (!selectedSize) return false;
     if (tab === 'mitad' && !halfProductId) return false;
@@ -193,6 +194,14 @@ export function ProductDetailSheet({
         <div className="flex-1 overflow-y-auto px-4 pb-4">
           <h2 className="mt-4 text-xl font-black text-gray-900">{product.name}</h2>
           <p className="mt-1 text-sm text-gray-500">{product.description}</p>
+
+          {!product.is_available && (
+            <div className="mt-3 rounded-xl border-2 border-gray-300 bg-gray-100 px-3 py-2.5">
+              <p className="text-sm font-bold text-gray-700">
+                Este producto está agotado por el momento
+              </p>
+            </div>
+          )}
 
           {/* Pestañas COMPLETA / MITAD Y MITAD */}
           {isPizza && (
@@ -411,11 +420,13 @@ export function ProductDetailSheet({
             className="flex w-full items-center justify-between rounded-full bg-red-600 px-5 py-3.5 text-white shadow-lg transition active:scale-[0.98] hover:bg-red-700 disabled:opacity-50"
           >
             <span className="text-sm font-bold">
-              {!canAdd()
-                ? tab === 'mitad' && !halfProductId
-                  ? 'Elige el Lado B'
-                  : 'Selecciona un tamaño'
-                : 'Agregar al Carrito'}
+              {!product.is_available
+                ? 'Agotado por el momento'
+                : !canAdd()
+                  ? tab === 'mitad' && !halfProductId
+                    ? 'Elige el Lado B'
+                    : 'Selecciona un tamaño'
+                  : 'Agregar al Carrito'}
             </span>
             {canAdd() && (
               <span className="flex items-center gap-1.5 text-base font-black">

@@ -26,8 +26,17 @@ export function ProductListCard({ product, onClick }: ProductListCardProps) {
             src={product.image_url}
             alt={product.name}
             loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className={`h-full w-full object-cover transition-all duration-300 group-hover:scale-105 ${
+              product.is_available ? '' : 'opacity-50 blur-[2px] grayscale'
+            }`}
           />
+        )}
+        {!product.is_available && (
+          <span className="absolute inset-0 flex items-center justify-center">
+            <span className="rounded-full bg-gray-900/80 px-2 py-0.5 text-[10px] font-bold text-white shadow">
+              Agotado
+            </span>
+          </span>
         )}
         {hasDiscount && (
           <span className="absolute left-1.5 top-1.5 flex items-center gap-0.5 rounded-md bg-yellow-400 px-1.5 py-0.5 text-[10px] font-bold text-red-700 shadow-sm">
@@ -55,8 +64,12 @@ export function ProductListCard({ product, onClick }: ProductListCardProps) {
             <span className="text-[10px] text-gray-400">desde</span>
             <p className="text-base font-black leading-none text-red-600">{formatPrice(discountedPrice)}</p>
           </div>
-          <span className="rounded-full bg-red-600 px-3 py-1.5 text-[11px] font-bold text-white transition group-hover:bg-red-700">
-            Personalizar
+          <span
+            className={`rounded-full px-3 py-1.5 text-[11px] font-bold text-white transition ${
+              product.is_available ? 'bg-red-600 group-hover:bg-red-700' : 'bg-gray-400'
+            }`}
+          >
+            {product.is_available ? 'Personalizar' : 'Agotado'}
           </span>
         </div>
       </div>

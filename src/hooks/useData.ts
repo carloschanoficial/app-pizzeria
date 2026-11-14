@@ -19,14 +19,24 @@ export function useProducts() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('is_active', true)
-        .order('sort_order', { ascending: true });
+      const [prodRes, shiftRes] = await Promise.all([
+        supabase
+          .from('products')
+          .select('*')
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true }),
+        supabase.from('service_shifts').select('id').eq('is_active', true),
+      ]);
       if (cancelled) return;
-      if (error) setError(error.message);
-      else setProducts(data as Product[]);
+      if (prodRes.error || shiftRes.error) {
+        setError((prodRes.error || shiftRes.error)!.message);
+      } else {
+        const activeShiftIds = new Set((shiftRes.data ?? []).map((s) => s.id));
+        const visible = (prodRes.data as Product[]).filter(
+          (p) => p.shift_id === null || activeShiftIds.has(p.shift_id),
+        );
+        setProducts(visible);
+      }
       setLoading(false);
     })();
     return () => {

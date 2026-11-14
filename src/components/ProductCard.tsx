@@ -26,8 +26,17 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
             src={product.image_url}
             alt={product.name}
             loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className={`h-full w-full object-cover transition-all duration-300 group-hover:scale-105 ${
+              product.is_available ? '' : 'opacity-50 blur-[2px] grayscale'
+            }`}
           />
+        )}
+        {!product.is_available && (
+          <span className="absolute inset-0 flex items-center justify-center">
+            <span className="rounded-full bg-gray-900/80 px-3 py-1 text-xs font-bold text-white shadow">
+              Agotado
+            </span>
+          </span>
         )}
         <div className="absolute left-2 top-2 flex flex-col gap-1">
           {product.is_bestseller && (
@@ -64,8 +73,12 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
                 {formatPrice(discountedPrice)}
               </p>
             </div>
-            <span className="rounded-full bg-red-600 px-3 py-1.5 text-[11px] font-bold text-white transition group-hover:bg-red-700">
-              Personalizar
+            <span
+              className={`rounded-full px-3 py-1.5 text-[11px] font-bold text-white transition ${
+                product.is_available ? 'bg-red-600 group-hover:bg-red-700' : 'bg-gray-400'
+              }`}
+            >
+              {product.is_available ? 'Personalizar' : 'Agotado'}
             </span>
           </div>
         </div>

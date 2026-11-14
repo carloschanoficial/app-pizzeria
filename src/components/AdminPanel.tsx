@@ -4,6 +4,7 @@ import type {
   Product,
   Category,
   ExtraIngredient,
+  ServiceShift,
 } from '@/types';
 import { AdminProducts } from '@/components/admin/AdminProducts';
 import { AdminExtras } from '@/components/admin/AdminExtras';
@@ -17,6 +18,7 @@ import { AdminPaymentInfo } from '@/components/admin/AdminPaymentInfo';
 import { AdminPlanRequests } from '@/components/admin/AdminPlanRequests';
 import { AdminCashRegister } from '@/components/admin/AdminCashRegister';
 import { AdminOrders } from '@/components/admin/AdminOrders';
+import { AdminShifts } from '@/components/admin/AdminShifts';
 import { getLoyaltyStampsRequired } from '@/lib/loyaltyRules';
 import { InstallAppButton } from '@/components/InstallAppButton';
 import type { InstallPromptState } from '@/hooks/useInstallPrompt';
@@ -35,20 +37,23 @@ export function AdminPanel({ isSuperAdmin, onExit, install }: AdminPanelProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [extras, setExtras] = useState<ExtraIngredient[]>([]);
+  const [shifts, setShifts] = useState<ServiceShift[]>([]);
   const [settings, setSettings] = useState<Record<string, string> | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
-    const [prodRes, catRes, extRes, setRes] = await Promise.all([
+    const [prodRes, catRes, extRes, setRes, shiftRes] = await Promise.all([
       supabase.from('products').select('*').order('sort_order', { ascending: true }),
       supabase.from('categories').select('*').order('sort_order', { ascending: true }),
       supabase.from('extra_ingredients').select('*').order('sort_order', { ascending: true }),
       supabase.from('store_settings').select('*'),
+      supabase.from('service_shifts').select('*').order('sort_order', { ascending: true }),
     ]);
 
     setProducts(prodRes.data as Product[] || []);
     setCategories(catRes.data as Category[] || []);
     setExtras(extRes.data as ExtraIngredient[] || []);
+    setShifts(shiftRes.data as ServiceShift[] || []);
 
     if (setRes.data) {
       const obj: Record<string, string> = {};
@@ -156,6 +161,9 @@ export function AdminPanel({ isSuperAdmin, onExit, install }: AdminPanelProps) {
             <AdminSettings settings={settings} onChanged={fetchAll} />
             {isSuperAdmin && (
               <div className="space-y-5 px-4 pb-6">
+                <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-100">
+                  <AdminShifts shifts={shifts} products={products} onChanged={fetchAll} />
+                </div>
                 <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-100">
                   <AdminCoupons />
                 </div>

@@ -20,6 +20,16 @@ export interface Product {
   discount_percent: number;
   is_bestseller: boolean;
   is_active: boolean;
+  is_available: boolean;
+  shift_id: string | null;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface ServiceShift {
+  id: string;
+  name: string;
+  is_active: boolean;
   sort_order: number;
   created_at: string;
 }

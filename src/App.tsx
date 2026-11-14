@@ -180,7 +180,7 @@ function AppContent() {
         <ProductDetailSheet
           product={selectedProduct}
           extras={extras}
-          allPizzas={products.filter((p) => p.sizes !== null)}
+          allPizzas={products.filter((p) => p.sizes !== null && p.is_available)}
           onClose={() => setSelectedProduct(null)}
           onAdded={() => {
             setSelectedProduct(null);
