@@ -177,7 +177,7 @@ export interface StoreSettings {
 }
 
 export type OrderType = 'domicilio' | 'recoger' | 'comedor';
-export type ShiftSalesByType = Record<OrderType, number>;
+export type ShiftSalesByType = Record<OrderType, number> & { deliveryFees: number };
 export type PaymentMethod = 'efectivo' | 'tarjeta' | 'transferencia';
 
 export interface Order {

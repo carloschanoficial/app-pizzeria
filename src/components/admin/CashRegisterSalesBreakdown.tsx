@@ -1,4 +1,4 @@
-import { Store, Truck, UtensilsCrossed } from 'lucide-react';
+import { Bike, Store, Truck, UtensilsCrossed } from 'lucide-react';
 import type { ShiftSalesByType } from '@/types';
 import { formatPriceDecimal } from '@/lib/format';
 
@@ -32,6 +32,16 @@ export function CashRegisterSalesBreakdown({ sales }: CashRegisterSalesBreakdown
       <div className="mt-2 flex items-center justify-between border-t border-gray-200 pt-2 text-sm">
         <span className="font-semibold text-gray-700">Total de ventas</span>
         <span className="font-black text-gray-900">{formatPriceDecimal(total)}</span>
+      </div>
+      <div className="mt-3 flex items-center justify-between rounded-xl bg-white p-3 text-sm ring-1 ring-gray-200">
+        <div>
+          <span className="flex items-center gap-2 font-semibold text-gray-800">
+            <Bike className="h-4 w-4 text-gray-500" />
+            Cobros por envío
+          </span>
+          <p className="mt-0.5 text-xs text-gray-500">No incluido en el total de ventas</p>
+        </div>
+        <span className="font-black text-gray-900">{formatPriceDecimal(sales.deliveryFees)}</span>
       </div>
     </div>
   );

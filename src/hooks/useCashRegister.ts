@@ -8,12 +8,18 @@ import type {
   ShiftSalesByType,
 } from '@/types';
 
-const EMPTY_SALES: ShiftSalesByType = { domicilio: 0, recoger: 0, comedor: 0 };
+const EMPTY_SALES: ShiftSalesByType = { domicilio: 0, recoger: 0, comedor: 0, deliveryFees: 0 };
 
-function summarizeSales(rows: { order_type: string | null; total: number }[]): ShiftSalesByType {
+function summarizeSales(
+  rows: { order_type: string | null; total: number; delivery_cost: number | null }[],
+): ShiftSalesByType {
   const sales: ShiftSalesByType = { ...EMPTY_SALES };
   for (const row of rows) {
-    if (row.order_type === 'domicilio' || row.order_type === 'recoger' || row.order_type === 'comedor') {
+    if (row.order_type === 'domicilio') {
+      const deliveryFee = Number(row.delivery_cost ?? 0);
+      sales.domicilio += Number(row.total) - deliveryFee;
+      sales.deliveryFees += deliveryFee;
+    } else if (row.order_type === 'recoger' || row.order_type === 'comedor') {
       sales[row.order_type as OrderType] += Number(row.total);
     }
   }
@@ -65,7 +71,7 @@ export function useCashRegister() {
           .select('*')
           .eq('shift_id', shiftId)
           .order('created_at', { ascending: true }),
-        supabase.from('orders').select('order_type,total').eq('shift_id', shiftId),
+        supabase.from('orders').select('order_type,total,delivery_cost').eq('shift_id', shiftId),
         supabase.from('cash_register_shifts').select('*').eq('id', shiftId).maybeSingle(),
       ]);
       if (!active) return;
@@ -140,6 +146,11 @@ export function useCashRegister() {
       const expensesTotal = expenses.reduce((sum, expense) => sum + expense.amount, 0);
       const expectedCash = calculateExpectedCash(shift.opening_float, shift.cash_sales, expensesTotal);
       const countedCash = countTotal(count);
+      const difference = calculateCashDifference(countedCash, expectedCash);
+      if (difference !== 0) {
+        setError('El efectivo contado debe coincidir con el esperado para cerrar la caja.');
+        return null;
+      }
       const { data, error: updateError } = await supabase
         .from('cash_register_shifts')
         .update({
@@ -147,7 +158,7 @@ export function useCashRegister() {
           closed_at: new Date().toISOString(),
           expected_cash: expectedCash,
           counted_cash: countedCash,
-          cash_difference: calculateCashDifference(countedCash, expectedCash),
+          cash_difference: difference,
           cash_count: count,
         })
         .eq('id', shift.id)

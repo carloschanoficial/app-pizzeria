@@ -108,6 +108,7 @@ export function buildShiftReportPdf(
     ['Ventas para recoger', formatPriceDecimal(sales.recoger)],
     ['Ventas en comedor', formatPriceDecimal(sales.comedor)],
     ['Total de ventas', formatPriceDecimal(sales.domicilio + sales.recoger + sales.comedor)],
+    ['Cobros por envío (no incluidos en ventas)', formatPriceDecimal(sales.deliveryFees)],
     ...expenseRows,
     ['Total de gastos', formatPriceDecimal(expensesTotal)],
     ['Efectivo esperado', formatPriceDecimal(expectedCash)],

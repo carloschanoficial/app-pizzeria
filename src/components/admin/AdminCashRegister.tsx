@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Download, Wallet, X } from 'lucide-react';
 import { useCashRegister } from '@/hooks/useCashRegister';
 import { formatPriceDecimal } from '@/lib/format';
-import { calculateExpectedCash, type CashCount } from '@/lib/cashCount';
+import { calculateCashDifference, calculateExpectedCash, countTotal, type CashCount } from '@/lib/cashCount';
 import { buildShiftReportPdf } from '@/lib/shiftReportPdf';
 import type { CashRegisterShift } from '@/types';
 import { CashRegisterExpenses } from '@/components/admin/CashRegisterExpenses';
@@ -29,6 +29,7 @@ export function AdminCashRegister() {
   const isOpen = shift !== null;
   const expensesTotal = Math.round(expenses.reduce((sum, expense) => sum + expense.amount, 0) * 100) / 100;
   const expectedCash = shift ? calculateExpectedCash(shift.opening_float, shift.cash_sales, expensesTotal) : 0;
+  const isBalanced = calculateCashDifference(countTotal(count), expectedCash) === 0;
 
   const handleOpen = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -88,6 +89,11 @@ export function AdminCashRegister() {
               Cuenta el efectivo físico de la caja antes de confirmar el cierre.
             </p>
             <CashRegisterCountForm expectedCash={expectedCash} count={count} onChange={setCount} />
+            {!isBalanced && (
+              <p className="mt-3 text-center text-xs font-semibold text-red-600">
+                Para cerrar la caja, el efectivo contado debe coincidir exactamente con el esperado.
+              </p>
+            )}
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button
                 type="button"
@@ -100,8 +106,8 @@ export function AdminCashRegister() {
               <button
                 type="button"
                 onClick={handleClose}
-                disabled={saving}
-                className="rounded-full bg-red-600 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-red-700 active:scale-[0.98] disabled:opacity-50"
+                disabled={saving || !isBalanced}
+                className="rounded-full bg-red-600 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-red-700 active:scale-[0.98] disabled:opacity-50 disabled:hover:bg-red-600 disabled:active:scale-100"
               >
                 {saving ? 'Cerrando...' : 'Confirmar cierre'}
               </button>
@@ -169,14 +175,19 @@ export function AdminCashRegister() {
         )}
 
         {!loading && isOpen && (
-          <button
-            type="button"
-            onClick={() => shift && downloadReport(shift)}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-gray-100 py-3 text-sm font-bold text-gray-800 transition hover:bg-gray-200 active:scale-[0.98]"
-          >
-            <Download className="h-4 w-4" />
-            Descargar reporte PDF
-          </button>
+          <div className="mt-4 space-y-2">
+            <button
+              type="button"
+              disabled
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-gray-100 py-3 text-sm font-bold text-gray-800 opacity-50"
+            >
+              <Download className="h-4 w-4" />
+              Descargar reporte PDF
+            </button>
+            <p className="text-center text-xs text-gray-500">
+              Se descarga al cerrar la caja con el arqueo cuadrado.
+            </p>
+          </div>
         )}
 
         {!loading && isOpen && !confirmingClose && (
