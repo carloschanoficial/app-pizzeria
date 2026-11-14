@@ -66,11 +66,9 @@ export function AdminPanel({ isSuperAdmin, onExit, install }: AdminPanelProps) {
     { key: 'banners', label: 'Banners', icon: Image },
     { key: 'clientes', label: 'Clientes', icon: Users },
     { key: 'config', label: 'Config', icon: Settings },
+    { key: 'caja', label: 'Corte de Caja', icon: Wallet },
     ...(isSuperAdmin
-      ? [
-          { key: 'suscripciones' as const, label: 'Suscripciones', icon: CreditCard },
-          { key: 'caja' as const, label: 'Corte de Caja', icon: Wallet },
-        ]
+      ? [{ key: 'suscripciones' as const, label: 'Suscripciones', icon: CreditCard }]
       : []),
   ];
 
@@ -146,7 +144,7 @@ export function AdminPanel({ isSuperAdmin, onExit, install }: AdminPanelProps) {
             <AdminSubscriptions />
             <AdminPlanRequests />
           </>
-        ) : tab === 'caja' && isSuperAdmin ? (
+        ) : tab === 'caja' ? (
           <AdminCashRegister />
         ) : (
           <>
