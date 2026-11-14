@@ -29,7 +29,8 @@ export function AdminCashRegister() {
   const isOpen = shift !== null;
   const expensesTotal = Math.round(expenses.reduce((sum, expense) => sum + expense.amount, 0) * 100) / 100;
   const expectedCash = shift ? calculateExpectedCash(shift.opening_float, shift.cash_sales, expensesTotal) : 0;
-  const isBalanced = calculateCashDifference(countTotal(count), expectedCash) === 0;
+  const countedCash = countTotal(count);
+  const isBalanced = calculateCashDifference(countedCash, expectedCash) === 0;
 
   const handleOpen = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -51,6 +52,17 @@ export function AdminCashRegister() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
+  const handleDownloadOpenReport = () => {
+    if (!shift || !isBalanced) return;
+    downloadReport({
+      ...shift,
+      cash_count: count,
+      counted_cash: countedCash,
+      expected_cash: expectedCash,
+      cash_difference: 0,
+    });
+  };
+
   const handleClose = async () => {
     setSaving(true);
     const closed = await closeShift(count);
@@ -64,7 +76,6 @@ export function AdminCashRegister() {
 
   const cancelClose = () => {
     setConfirmingClose(false);
-    setCount({});
   };
 
   return (
@@ -72,9 +83,9 @@ export function AdminCashRegister() {
       {isOpen && confirmingClose && (
         <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={saving ? undefined : cancelClose} />
-          <div className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-white p-5 sm:rounded-2xl">
+          <div className="relative w-full max-w-md rounded-t-2xl bg-white p-5 sm:rounded-2xl">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-gray-900">Cerrar caja</h3>
+              <h3 className="text-lg font-bold text-gray-900">Confirmar cierre de caja</h3>
               <button
                 type="button"
                 onClick={cancelClose}
@@ -85,15 +96,23 @@ export function AdminCashRegister() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <p className="mt-2 text-sm text-gray-600">
-              Cuenta el efectivo físico de la caja antes de confirmar el cierre.
-            </p>
-            <CashRegisterCountForm expectedCash={expectedCash} count={count} onChange={setCount} />
-            {!isBalanced && (
-              <p className="mt-3 text-center text-xs font-semibold text-red-600">
-                Para cerrar la caja, el efectivo contado debe coincidir exactamente con el esperado.
-              </p>
-            )}
+            <dl className="mt-4 space-y-2 rounded-xl bg-gray-50 p-4 text-sm">
+              <div className="flex items-center justify-between">
+                <dt className="text-gray-600">Efectivo esperado</dt>
+                <dd className="font-semibold text-gray-900">{formatPriceDecimal(expectedCash)}</dd>
+              </div>
+              <div className="flex items-center justify-between">
+                <dt className="text-gray-600">Efectivo contado</dt>
+                <dd className="font-semibold text-gray-900">{formatPriceDecimal(countedCash)}</dd>
+              </div>
+              <div className="flex items-center justify-between rounded-xl bg-green-50 p-3">
+                <dt className="font-bold text-green-700">Caja cuadrada</dt>
+                <dd className="text-lg font-black text-green-700">
+                  {formatPriceDecimal(calculateCashDifference(countedCash, expectedCash))}
+                </dd>
+              </div>
+            </dl>
+            <p className="mt-3 text-xs text-gray-500">Al confirmar, el turno se cerrará y se descargará el reporte PDF.</p>
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button
                 type="button"
@@ -175,32 +194,36 @@ export function AdminCashRegister() {
         )}
 
         {!loading && isOpen && (
-          <div className="mt-4 space-y-2">
+          <CashRegisterCountForm expectedCash={expectedCash} count={count} onChange={setCount} />
+        )}
+
+        {!loading && isOpen && !isBalanced && (
+          <p className="mt-3 text-center text-xs font-semibold text-red-600">
+            Para cerrar la caja y descargar el reporte, el efectivo contado debe coincidir exactamente con el esperado.
+          </p>
+        )}
+
+        {!loading && isOpen && (
+          <div className="mt-4 grid grid-cols-2 gap-2">
             <button
               type="button"
-              disabled
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-gray-100 py-3 text-sm font-bold text-gray-800 opacity-50"
+              onClick={handleDownloadOpenReport}
+              disabled={!isBalanced}
+              className="flex items-center justify-center gap-2 rounded-full bg-gray-100 py-3 text-sm font-bold text-gray-800 transition hover:bg-gray-200 active:scale-[0.98] disabled:opacity-50 disabled:hover:bg-gray-100 disabled:active:scale-100"
             >
               <Download className="h-4 w-4" />
-              Descargar reporte PDF
+              Descargar PDF
             </button>
-            <p className="text-center text-xs text-gray-500">
-              Se descarga al cerrar la caja con el arqueo cuadrado.
-            </p>
+            <button
+              type="button"
+              onClick={() => setConfirmingClose(true)}
+              disabled={!isBalanced}
+              className="rounded-full bg-red-600 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-red-700 active:scale-[0.98] disabled:opacity-50 disabled:hover:bg-red-600 disabled:active:scale-100"
+            >
+              Cerrar caja
+            </button>
           </div>
         )}
-
-        {!loading && isOpen && !confirmingClose && (
-          <button
-            type="button"
-            onClick={() => setConfirmingClose(true)}
-            className="mt-4 w-full rounded-full border-2 border-red-600 py-3 text-sm font-bold text-red-600 transition hover:bg-red-50 active:scale-[0.98]"
-          >
-            Cerrar caja
-          </button>
-        )}
-
-
 
         {!loading && !isOpen && !showForm && (
           <button
