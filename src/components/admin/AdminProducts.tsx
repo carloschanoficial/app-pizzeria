@@ -3,7 +3,7 @@ import { Plus, Pencil, Trash2, X, Check, Flame, ImagePlus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { uploadImageBase64 } from '@/lib/upload';
 import { getMinPrice } from '@/lib/pricing';
-import type { Product, Category, ServiceShift, SizeKey } from '@/types';
+import type { Product, Category, ServiceShift, SizeKey, SizeLabels } from '@/types';
 import { SIZE_LABELS, SIZE_ORDER } from '@/types';
 import { formatPrice } from '@/lib/format';
 
@@ -30,6 +30,10 @@ interface ProductForm {
   price_mediana: string;
   price_grande: string;
   price_familiar: string;
+  label_chica: string;
+  label_mediana: string;
+  label_grande: string;
+  label_familiar: string;
 }
 
 const EMPTY_FORM: ProductForm = {
@@ -48,13 +52,17 @@ const EMPTY_FORM: ProductForm = {
   price_mediana: '',
   price_grande: '',
   price_familiar: '',
+  label_chica: '',
+  label_mediana: '',
+  label_grande: '',
+  label_familiar: '',
 };
 
-const PRICE_FIELDS: { key: keyof ProductForm; size: SizeKey }[] = [
-  { key: 'price_chica', size: 'chica' },
-  { key: 'price_mediana', size: 'mediana' },
-  { key: 'price_grande', size: 'grande' },
-  { key: 'price_familiar', size: 'familiar' },
+const PRICE_FIELDS: { key: keyof ProductForm; labelKey: keyof ProductForm; size: SizeKey }[] = [
+  { key: 'price_chica', labelKey: 'label_chica', size: 'chica' },
+  { key: 'price_mediana', labelKey: 'label_mediana', size: 'mediana' },
+  { key: 'price_grande', labelKey: 'label_grande', size: 'grande' },
+  { key: 'price_familiar', labelKey: 'label_familiar', size: 'familiar' },
 ];
 
 export function AdminProducts({ products, categories, shifts, onChanged }: AdminProductsProps) {
@@ -120,6 +128,10 @@ export function AdminProducts({ products, categories, shifts, onChanged }: Admin
       price_mediana: p.sizes?.mediana != null ? String(p.sizes.mediana) : '',
       price_grande: p.sizes?.grande != null ? String(p.sizes.grande) : '',
       price_familiar: p.sizes?.familiar != null ? String(p.sizes.familiar) : '',
+      label_chica: p.size_labels?.chica ?? '',
+      label_mediana: p.size_labels?.mediana ?? '',
+      label_grande: p.size_labels?.grande ?? '',
+      label_familiar: p.size_labels?.familiar ?? '',
     });
     setShowForm(true);
   };
@@ -129,16 +141,21 @@ export function AdminProducts({ products, categories, shifts, onChanged }: Admin
     setSaving(true);
 
     let sizes = null;
+    let sizeLabels: SizeLabels | null = null;
     if (form.has_sizes) {
       const sizeObj: Record<string, number> = {};
-      PRICE_FIELDS.forEach(({ key, size }) => {
+      const labelObj: SizeLabels = {};
+      PRICE_FIELDS.forEach(({ key, labelKey, size }) => {
         const val = form[key];
         if (val !== '' && val != null) {
           const num = Number(val);
           if (num > 0) sizeObj[size] = num;
         }
+        const name = (form[labelKey] as string).trim();
+        if (name) labelObj[size] = name;
       });
       sizes = Object.keys(sizeObj).length > 0 ? sizeObj : null;
+      sizeLabels = Object.keys(labelObj).length > 0 ? labelObj : null;
     }
 
     const payload = {
@@ -153,6 +170,7 @@ export function AdminProducts({ products, categories, shifts, onChanged }: Admin
       is_active: form.is_active,
       is_available: form.is_available,
       sizes,
+      size_labels: sizeLabels,
     };
 
     if (editing) {
@@ -389,7 +407,7 @@ export function AdminProducts({ products, categories, shifts, onChanged }: Admin
                     className="h-4 w-4 accent-red-600"
                   />
                   <span className="text-sm font-bold text-gray-700">
-                    Producto con tamaños (pizza)
+                    Tiene tamaños o porciones
                   </span>
                 </label>
               </div>
@@ -398,21 +416,34 @@ export function AdminProducts({ products, categories, shifts, onChanged }: Admin
               {form.has_sizes ? (
                 <div>
                   <p className="text-xs text-gray-500 mb-2">
-                    Precio directo por tamaño. Deja vacío si no ofreces ese tamaño.
+                    Nombre y precio de cada tamaño o porción. Deja el precio vacío si no lo ofreces. Si dejas el nombre vacío se usa Chica, Mediana, Grande o Familiar.
                   </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {PRICE_FIELDS.map(({ key, size }) => (
-                      <Field key={size} label={SIZE_LABELS[size]}>
-                        <input
-                          type="number"
-                          value={form[key] as string}
-                          onChange={(e) =>
-                            setForm({ ...form, [key]: e.target.value })
-                          }
-                          placeholder="—"
-                          className="input-base"
-                        />
-                      </Field>
+                  <div className="space-y-2">
+                    {PRICE_FIELDS.map(({ key, labelKey, size }) => (
+                      <div key={size} className="grid grid-cols-[1fr_7rem] gap-2">
+                        <Field label="Nombre">
+                          <input
+                            type="text"
+                            value={form[labelKey] as string}
+                            onChange={(e) =>
+                              setForm({ ...form, [labelKey]: e.target.value })
+                            }
+                            placeholder={SIZE_LABELS[size]}
+                            className="input-base"
+                          />
+                        </Field>
+                        <Field label="Precio">
+                          <input
+                            type="number"
+                            value={form[key] as string}
+                            onChange={(e) =>
+                              setForm({ ...form, [key]: e.target.value })
+                            }
+                            placeholder="—"
+                            className="input-base"
+                          />
+                        </Field>
+                      </div>
                     ))}
                   </div>
                 </div>

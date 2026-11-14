@@ -8,6 +8,7 @@ export interface Category {
 }
 
 export type SizePrices = Partial<Record<SizeKey, number>>;
+export type SizeLabels = Partial<Record<SizeKey, string>>;
 
 export interface Product {
   id: string;
@@ -17,6 +18,7 @@ export interface Product {
   image_url: string | null;
   base_price: number;
   sizes: SizePrices | null;
+  size_labels: SizeLabels | null;
   discount_percent: number;
   is_bestseller: boolean;
   is_active: boolean;

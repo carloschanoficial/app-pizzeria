@@ -1,9 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { X, Check, Plus, Flame, Percent } from 'lucide-react';
 import type { Product, ExtraIngredient, SizeKey, CartItem } from '@/types';
-import { SIZE_LABELS } from '@/types';
 import { formatPrice } from '@/lib/format';
-import { getAvailableSizes, getSizePrice, getHalfHalfPrice } from '@/lib/pricing';
+import { getAvailableSizes, getSizeLabel, getSizePrice, getHalfHalfPrice } from '@/lib/pricing';
 import { useStore } from '@/store/StoreContext';
 
 interface ProductDetailSheetProps {
@@ -109,7 +108,7 @@ export function ProductDetailSheet({
       image_url: product.image_url,
       base_price: sizePrice,
       size: selectedSize,
-      size_label: selectedSize ? SIZE_LABELS[selectedSize] : 'Único',
+      size_label: selectedSize ? getSizeLabel(product, selectedSize) : 'Único',
       size_price: sizePrice,
       extras: extras
         .filter((e) => selectedExtras.includes(e.id))
@@ -305,7 +304,7 @@ export function ProductDetailSheet({
                             : 'text-gray-700'
                         }`}
                       >
-                        {SIZE_LABELS[size]}
+                        {getSizeLabel(product, size)}
                       </span>
                       <span
                         className={`mt-0.5 text-xs ${

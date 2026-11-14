@@ -1,9 +1,8 @@
 import { useState, useMemo } from 'react';
 import { SplitSquareHorizontal, Plus } from 'lucide-react';
 import type { Product, SizeKey, CartItem } from '@/types';
-import { SIZE_LABELS } from '@/types';
 import { formatPrice } from '@/lib/format';
-import { getAvailableSizes, getHalfHalfPrice } from '@/lib/pricing';
+import { getAvailableSizes, getHalfHalfPrice, getSizeLabel } from '@/lib/pricing';
 import { useStore } from '@/store/StoreContext';
 
 interface HalfAndHalfCardProps {
@@ -51,7 +50,7 @@ export function HalfAndHalfCard({ pizzas, onAdded }: HalfAndHalfCardProps) {
       image_url: half1.image_url,
       base_price: price,
       size,
-      size_label: SIZE_LABELS[size],
+      size_label: getSizeLabel(half1, size),
       size_price: price,
       extras: [],
       notes: `Mitad: ${half1.name} / Mitad: ${half2.name}`,
@@ -149,7 +148,7 @@ export function HalfAndHalfCard({ pizzas, onAdded }: HalfAndHalfCardProps) {
                           active ? 'text-orange-600' : 'text-gray-700'
                         }`}
                       >
-                        {SIZE_LABELS[s]}
+                        {getSizeLabel(half1, s)}
                       </span>
                       <span
                         className={`text-xs ${

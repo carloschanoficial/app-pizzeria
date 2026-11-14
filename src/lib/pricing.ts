@@ -1,9 +1,13 @@
 import type { Product, SizeKey, SizePrices } from '@/types';
-import { SIZE_ORDER } from '@/types';
+import { SIZE_LABELS, SIZE_ORDER } from '@/types';
 
 export function getAvailableSizes(sizes: SizePrices | null): SizeKey[] {
   if (!sizes) return [];
   return SIZE_ORDER.filter((s) => sizes[s] !== undefined && sizes[s]! > 0);
+}
+
+export function getSizeLabel(product: Pick<Product, 'size_labels'> | null, size: SizeKey): string {
+  return product?.size_labels?.[size]?.trim() || SIZE_LABELS[size];
 }
 
 export function getSizePrice(product: Product, size: SizeKey): number {
