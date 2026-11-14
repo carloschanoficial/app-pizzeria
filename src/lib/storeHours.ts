@@ -79,18 +79,47 @@ export function getStoreOpen(settings: StoreSettings | null): boolean {
   return isStoreAutoOpen(settings);
 }
 
+const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
+
+function formatClock(t: string): string {
+  const [h, m] = t.split(':').map(Number);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${m.toString().padStart(2, '0')} ${period}`;
+}
+
+function formatDayRange(startIdx: number, endIdx: number): string {
+  const first = DAY_NAMES[WEEK_ORDER[startIdx]];
+  const last = DAY_NAMES[WEEK_ORDER[endIdx]];
+  if (startIdx === endIdx) return first;
+  if (endIdx - startIdx === 1) return `${first} y ${last}`;
+  return `${first} a ${last}`;
+}
+
 export function getScheduleText(settings?: StoreSettings | null): string {
   const schedule = parseSchedule(settings?.auto_schedule);
-  const openDays = Object.entries(schedule)
-    .filter(([, v]) => v.open)
-    .map(([k]) => DAY_NAMES[Number(k)]);
-  if (openDays.length === 0) return 'Cerrado todos los días';
-  const sample = schedule[Number(Object.keys(schedule).find(([k]) => schedule[Number(k)].open)!)];
-  const fmtTime = (t: string) => {
-    const [h, m] = t.split(':').map(Number);
-    const period = h >= 12 ? 'PM' : 'AM';
-    const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
-    return `${h12}:${m.toString().padStart(2, '0')} ${period}`;
-  };
-  return `${openDays.join(', ')}, ${fmtTime(sample.openTime)} - ${fmtTime(sample.closeTime)}`;
+  const runs: { startIdx: number; endIdx: number; cfg: DaySchedule }[] = [];
+
+  WEEK_ORDER.forEach((day, idx) => {
+    const cfg = schedule[day];
+    if (!cfg?.open) return;
+    const prev = runs[runs.length - 1];
+    const sameHours =
+      prev && prev.endIdx === idx - 1 &&
+      prev.cfg.openTime === cfg.openTime && prev.cfg.closeTime === cfg.closeTime;
+    if (sameHours) {
+      prev.endIdx = idx;
+    } else {
+      runs.push({ startIdx: idx, endIdx: idx, cfg });
+    }
+  });
+
+  if (runs.length === 0) return 'Cerrado todos los días';
+
+  return runs
+    .map(({ startIdx, endIdx, cfg }) => {
+      const days = formatDayRange(startIdx, endIdx);
+      return `${days}: ${formatClock(cfg.openTime)} - ${formatClock(cfg.closeTime)}`;
+    })
+    .join(' · ');
 }

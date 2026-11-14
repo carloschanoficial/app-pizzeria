@@ -11,6 +11,7 @@ import {
 import type { StoreSettings } from '@/types';
 import { buildLoyaltyRules } from '@/lib/loyaltyRules';
 import { DEFAULT_BUSINESS_NAME } from '@/lib/brandTheme';
+import { getScheduleText } from '@/lib/storeHours';
 
 interface PerfilPageProps {
   settings: StoreSettings | null;
@@ -49,7 +50,7 @@ export function PerfilPage({ settings, isAdmin, onAdminClick }: PerfilPageProps)
                 <Clock className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-500" />
                 <div>
                   <p className="text-xs text-gray-400">Horario</p>
-                  <p className="text-sm text-gray-700">{settings.schedule}</p>
+                  <p className="text-sm text-gray-700">{getScheduleText(settings)}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 px-4 py-3">
