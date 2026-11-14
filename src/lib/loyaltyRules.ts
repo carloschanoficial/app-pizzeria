@@ -1,7 +1,14 @@
 import type { CartItem, StoreSettings } from '@/types';
 import { formatPrice } from '@/lib/format';
 
-export function buildRewardCartItem(rewardName: string): CartItem {
+export const DEFAULT_LOYALTY_STAMPS = 6;
+
+export function getLoyaltyStampsRequired(settings: { loyalty_stamps_required?: string } | null): number {
+  const n = Number(settings?.loyalty_stamps_required);
+  return Number.isInteger(n) && n >= 1 ? n : DEFAULT_LOYALTY_STAMPS;
+}
+
+export function buildRewardCartItem(rewardName: string, stampsRequired: number): CartItem {
   return {
     id: crypto.randomUUID(),
     product_id: 'reward',
@@ -12,7 +19,7 @@ export function buildRewardCartItem(rewardName: string): CartItem {
     size_label: 'Chica',
     size_price: 0,
     extras: [],
-    notes: 'Premio por completar 6 pedidos',
+    notes: `Premio por completar ${stampsRequired} pedidos`,
     quantity: 1,
     unit_price: 0,
     discount_percent: 0,
@@ -46,9 +53,10 @@ export function canRedeemBalance(balance: number, rules: WalletRules): boolean {
 export function buildLoyaltyRules(settings: StoreSettings | null): string[] {
   const rewardName = settings?.loyalty_reward_name?.trim() || 'tu premio';
   const { cashbackPerOrder, redeemThreshold } = getWalletRules(settings);
+  const stampsRequired = getLoyaltyStampsRequired(settings);
 
   const rules = [
-    `Cada pedido suma 1 sello a tu tarjeta de lealtad. Al completar 6 sellos puedes reclamar ${rewardName}.`,
+    `Cada pedido suma 1 sello a tu tarjeta de lealtad. Al completar ${stampsRequired} sellos puedes reclamar ${rewardName}.`,
   ];
   if (cashbackPerOrder > 0) {
     rules.push(`Cada pedido suma ${formatPrice(cashbackPerOrder)} a tu Olla de Dinero.`);

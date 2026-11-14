@@ -20,7 +20,7 @@ import { useStore } from '@/store/StoreContext';
 import { formatPrice } from '@/lib/format';
 import { supabase } from '@/lib/supabase';
 import { useWallet } from '@/hooks/useData';
-import { buildRewardCartItem, getWalletRules } from '@/lib/loyaltyRules';
+import { buildRewardCartItem, getLoyaltyStampsRequired, getWalletRules } from '@/lib/loyaltyRules';
 import { ClayPotIcon } from '@/components/ClayPotIcon';
 import { isValidWhatsappNumber, normalizeWhatsappNumber } from '@/lib/whatsapp';
 import { CouponInput } from '@/components/CouponInput';
@@ -123,7 +123,8 @@ export function CartSheet({ onClose, onOrderPlaced }: CartSheetProps) {
   const needsAddress = orderType === 'domicilio';
   const hasFreeReward = cart.some((c) => c.is_free_reward);
   const rewardName = settings?.loyalty_reward_name || 'Pizza Chica Hawaiana GRATIS';
-  const rewardPending = loyaltyStamps >= 6 && !loyaltyRewardClaimed && !hasFreeReward && !rewardDeclined;
+  const stampsRequired = getLoyaltyStampsRequired(settings);
+  const rewardPending = loyaltyStamps >= stampsRequired && !loyaltyRewardClaimed && !hasFreeReward && !rewardDeclined;
   const effectiveTotal = finalTotal;
   const change = cashAmount !== null ? cashAmount - effectiveTotal : null;
 
@@ -215,10 +216,10 @@ export function CartSheet({ onClose, onOrderPlaced }: CartSheetProps) {
     lines.push(divider);
     lines.push(`*Total: ${formatPrice(effectiveTotal)}*`);
 
-    if (updatedStamps >= 6 && !loyaltyRewardClaimed && !hasFreeReward) {
-      lines.push(`${updatedStamps}/6 ¡Reclama ${rewardName} EN TU PRÓXIMO PEDIDO!`);
+    if (updatedStamps >= stampsRequired && !loyaltyRewardClaimed && !hasFreeReward) {
+      lines.push(`${updatedStamps}/${stampsRequired} ¡Reclama ${rewardName} EN TU PRÓXIMO PEDIDO!`);
     } else if (!loyaltyRewardClaimed && !hasFreeReward) {
-      lines.push(`Tarjeta Lealtad: ${updatedStamps}/6`);
+      lines.push(`Tarjeta Lealtad: ${updatedStamps}/${stampsRequired}`);
     }
 
     if (paymentMethod === 'transferencia') {
@@ -241,7 +242,7 @@ export function CartSheet({ onClose, onOrderPlaced }: CartSheetProps) {
     }
 
     setSubmitting(true);
-    const updatedStamps = hasFreeReward ? 0 : Math.min(loyaltyStamps + 1, 6);
+    const updatedStamps = hasFreeReward ? 0 : Math.min(loyaltyStamps + 1, stampsRequired);
 
     try {
       if (phone.trim()) {
@@ -494,10 +495,10 @@ export function CartSheet({ onClose, onOrderPlaced }: CartSheetProps) {
               {rewardPending && (
                 <div className="mb-3 rounded-2xl bg-yellow-50 p-4 ring-1 ring-yellow-300">
                   <p className="text-sm font-bold text-gray-900">
-                    Completaste 6 pedidos. ¿Quieres reclamar tu premio en este pedido?
+                    Completaste {stampsRequired} pedidos. ¿Quieres reclamar tu premio en este pedido?
                   </p>
                   <button
-                    onClick={() => addToCart(buildRewardCartItem(rewardName))}
+                    onClick={() => addToCart(buildRewardCartItem(rewardName, stampsRequired))}
                     className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-yellow-400 py-3 text-sm font-black text-gray-900 transition active:scale-[0.98] hover:bg-yellow-300"
                   >
                     <Gift className="h-4 w-4" />
@@ -523,14 +524,14 @@ export function CartSheet({ onClose, onOrderPlaced }: CartSheetProps) {
         ) : (
           <>
             <div className="flex-1 overflow-y-auto px-4 py-4">
-              {loyaltyStamps >= 6 && !loyaltyRewardClaimed && !hasFreeReward && (
+              {loyaltyStamps >= stampsRequired && !loyaltyRewardClaimed && !hasFreeReward && (
                 <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl bg-yellow-50 p-4 ring-1 ring-yellow-300">
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-gray-900">Tienes un premio disponible</p>
                     <p className="truncate text-xs text-gray-600">{rewardName}</p>
                   </div>
                   <button
-                    onClick={() => addToCart(buildRewardCartItem(rewardName))}
+                    onClick={() => addToCart(buildRewardCartItem(rewardName, stampsRequired))}
                     className="flex flex-shrink-0 items-center gap-1.5 rounded-full bg-yellow-400 px-4 py-2 text-xs font-black text-gray-900 transition active:scale-95 hover:bg-yellow-300"
                   >
                     <Gift className="h-4 w-4" />

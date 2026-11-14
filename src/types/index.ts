@@ -167,6 +167,7 @@ export interface StoreSettings {
   manual_is_open: string;
   auto_schedule: string;
   loyalty_reward_name: string;
+  loyalty_stamps_required?: string;
   wallet_cashback_per_order: string;
   wallet_redeem_threshold: string;
 }

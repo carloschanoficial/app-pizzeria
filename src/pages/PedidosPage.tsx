@@ -7,6 +7,7 @@ import { useLoyaltyCard } from '@/hooks/useData';
 import type { Order } from '@/types';
 import { ORDER_STEPS } from '@/types';
 import { LoyaltyCardComponent } from '@/components/LoyaltyCardComponent';
+import { getLoyaltyStampsRequired } from '@/lib/loyaltyRules';
 
 const STEP_ICONS = [Clock, Pizza, Truck, CheckCircle];
 const STEP_COLORS = ['bg-amber-500', 'bg-blue-500', 'bg-purple-500', 'bg-green-500'];
@@ -62,6 +63,7 @@ export function PedidosPage() {
           stamps={card.stamps}
           rewardClaimed={card.reward_claimed}
           rewardName={settings?.loyalty_reward_name || 'Pizza Chica Hawaiana GRATIS'}
+          totalSlots={getLoyaltyStampsRequired(settings)}
         />
       )}
 

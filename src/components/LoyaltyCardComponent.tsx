@@ -4,14 +4,15 @@ interface LoyaltyCardComponentProps {
   stamps: number;
   rewardClaimed: boolean;
   rewardName: string;
+  totalSlots: number;
 }
 
 export function LoyaltyCardComponent({
   stamps,
   rewardClaimed,
   rewardName,
+  totalSlots,
 }: LoyaltyCardComponentProps) {
-  const totalSlots = 6;
   const canClaim = stamps >= totalSlots && !rewardClaimed;
 
   return (
@@ -21,7 +22,7 @@ export function LoyaltyCardComponent({
         <h3 className="text-sm font-black text-white">Tarjeta de Lealtad</h3>
       </div>
       <p className="mt-1 text-xs text-white/80">
-        Acumula 6 pedidos y gana {rewardName}
+        Acumula {totalSlots} pedidos y gana {rewardName}
       </p>
 
       {/* Sellos */}
@@ -54,7 +55,7 @@ export function LoyaltyCardComponent({
         ) : rewardClaimed ? (
           <span className="flex items-center gap-1 text-xs font-bold text-yellow-300">
             <Lock className="h-3 w-3" />
-            Premio canjeado - completa 6 nuevos
+            Premio canjeado - completa {totalSlots} nuevos
           </span>
         ) : (
           <span className="text-xs text-white/60">

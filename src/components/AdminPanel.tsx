@@ -17,6 +17,7 @@ import { AdminPaymentInfo } from '@/components/admin/AdminPaymentInfo';
 import { AdminPlanRequests } from '@/components/admin/AdminPlanRequests';
 import { AdminCashRegister } from '@/components/admin/AdminCashRegister';
 import { AdminOrders } from '@/components/admin/AdminOrders';
+import { getLoyaltyStampsRequired } from '@/lib/loyaltyRules';
 import { InstallAppButton } from '@/components/InstallAppButton';
 import type { InstallPromptState } from '@/hooks/useInstallPrompt';
 import { ArrowLeft, Pizza, Tag, Settings, Image, Users, LogOut, CreditCard, Wallet, ClipboardList } from 'lucide-react';
@@ -142,7 +143,7 @@ export function AdminPanel({ isSuperAdmin, onExit, install }: AdminPanelProps) {
         ) : tab === 'pedidos' ? (
           <AdminOrders />
         ) : tab === 'clientes' ? (
-          <AdminCustomers onChanged={fetchAll} rewardName={settings?.loyalty_reward_name || 'Pizza Chica Hawaiana GRATIS'} />
+          <AdminCustomers onChanged={fetchAll} rewardName={settings?.loyalty_reward_name || 'Pizza Chica Hawaiana GRATIS'} stampsRequired={getLoyaltyStampsRequired(settings)} />
         ) : tab === 'suscripciones' && isSuperAdmin ? (
           <>
             <AdminSubscriptions />

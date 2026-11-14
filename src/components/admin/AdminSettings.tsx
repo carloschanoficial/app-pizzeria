@@ -58,6 +58,7 @@ const FIELD_GROUPS: FieldGroup[] = [
     icon: Gift,
     fields: [
       { key: 'loyalty_reward_name', label: 'Nombre del premio (ej: Pizza Chica Hawaiana GRATIS, Molletes, etc.)' },
+      { key: 'loyalty_stamps_required', label: 'Sellos necesarios para completar la tarjeta (número entero, mínimo 1)', type: 'number' },
       { key: 'wallet_cashback_per_order', label: 'Monedas que suma cada compra a la Olla de Dinero (MXN, 0 = no suma)', type: 'number' },
       { key: 'wallet_redeem_threshold', label: 'Saldo mínimo para canjear la Olla (MXN, 0 = sin canje)', type: 'number' },
     ],
@@ -104,6 +105,11 @@ export function AdminSettings({ settings, onChanged }: AdminSettingsProps) {
     });
     if (invalidRule) {
       setRuleError('Los montos de la Olla de Dinero deben ser números iguales o mayores a 0.');
+      return;
+    }
+    const stampsRequired = Number(form.loyalty_stamps_required);
+    if (!Number.isInteger(stampsRequired) || stampsRequired < 1) {
+      setRuleError('Los sellos necesarios deben ser un número entero de 1 o más.');
       return;
     }
     setRuleError(null);

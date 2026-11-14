@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { Users, Minus, Plus, Check, Search, Gift, RotateCcw, Clock, Wallet, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { formatPrice } from '@/lib/format';
+import { getLoyaltyStampsRequired } from '@/lib/loyaltyRules';
 import type { LoyaltyCard, Order, VirtualWallet } from '@/types';
 
 interface AdminCustomersProps {
   onChanged: () => void;
   rewardName: string;
+  stampsRequired: number;
 }
 
 interface CustomerWithStats extends LoyaltyCard {
@@ -15,7 +17,7 @@ interface CustomerWithStats extends LoyaltyCard {
   wallet_balance: number;
 }
 
-export function AdminCustomers({ onChanged, rewardName }: AdminCustomersProps) {
+export function AdminCustomers({ onChanged, rewardName, stampsRequired }: AdminCustomersProps) {
   const [customers, setCustomers] = useState<CustomerWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -155,7 +157,7 @@ export function AdminCustomers({ onChanged, rewardName }: AdminCustomersProps) {
 
       <p className="text-xs text-gray-400">
         Administra los sellos de la tarjeta de lealtad y el saldo de la Olla de Dinero de cada cliente.
-        Al completar 6 sellos, el cliente puede reclamar: <span className="font-bold text-red-600">{rewardName}</span>.
+        Al completar {stampsRequired} sellos, el cliente puede reclamar: <span className="font-bold text-red-600">{rewardName}</span>.
         Los sellos expiran si pasan 30 días sin nuevos pedidos.
       </p>
 
@@ -248,7 +250,7 @@ export function AdminCustomers({ onChanged, rewardName }: AdminCustomersProps) {
                     aria-label="Sellos"
                     className="w-12 rounded-lg border-2 border-gray-200 py-1 text-center text-sm font-black text-gray-900 outline-none focus:border-red-500"
                   />
-                  <span className="text-xs font-bold text-gray-500">/6</span>
+                  <span className="text-xs font-bold text-gray-500">/{stampsRequired}</span>
                   <button
                     onClick={() => setEditStamps((s) => Math.min(50, s + 1))}
                     className="flex h-7 w-7 items-center justify-center rounded-full bg-red-600 text-white shadow-sm transition active:scale-90 hover:bg-red-700"
@@ -267,7 +269,7 @@ export function AdminCustomers({ onChanged, rewardName }: AdminCustomersProps) {
               ) : (
                 <div className="flex items-center gap-3">
                   <div className="flex gap-1">
-                    {Array.from({ length: 6 }).map((_, i) => (
+                    {Array.from({ length: stampsRequired }).map((_, i) => (
                       <div
                         key={i}
                         className={`h-5 w-5 rounded ${
@@ -276,7 +278,7 @@ export function AdminCustomers({ onChanged, rewardName }: AdminCustomersProps) {
                       />
                     ))}
                   </div>
-                  <span className="text-xs font-bold text-gray-700">{c.stamps}/6</span>
+                  <span className="text-xs font-bold text-gray-700">{c.stamps}/{stampsRequired}</span>
                   <button
                     onClick={() => {
                       setEditingId(c.id);
