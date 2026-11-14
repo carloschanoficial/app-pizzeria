@@ -1,7 +1,7 @@
 import type { CartItem, StoreSettings } from '@/types';
 import { formatPrice } from '@/lib/format';
 
-export const DEFAULT_LOYALTY_STAMPS = 6;
+export const DEFAULT_LOYALTY_STAMPS = 50;
 
 export function getLoyaltyStampsRequired(settings: { loyalty_stamps_required?: string } | null): number {
   const n = Number(settings?.loyalty_stamps_required);

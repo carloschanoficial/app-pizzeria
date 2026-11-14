@@ -90,7 +90,7 @@ export function useStoreSettings() {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    const load = async () => {
       const { data } = await supabase.from('store_settings').select('*');
       if (cancelled) return;
       if (data) {
@@ -101,9 +101,15 @@ export function useStoreSettings() {
         setSettings(obj as unknown as StoreSettings);
       }
       setLoading(false);
-    })();
+    };
+    load();
+    const channel = supabase
+      .channel('store_settings_live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'store_settings' }, load)
+      .subscribe();
     return () => {
       cancelled = true;
+      supabase.removeChannel(channel);
     };
   }, []);
 
