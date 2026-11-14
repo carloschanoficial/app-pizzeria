@@ -5,6 +5,7 @@ import type {
   Product,
   Category,
   ExtraIngredient,
+  ServiceShift,
   StoreSettings,
   PromoBanner,
   VirtualWallet,
@@ -45,6 +46,30 @@ export function useProducts() {
   }, []);
 
   return { products, loading, error };
+}
+
+export function useActiveShifts() {
+  const [shifts, setShifts] = useState<ServiceShift[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('service_shifts')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true });
+      if (cancelled) return;
+      if (data) setShifts(data as ServiceShift[]);
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return { shifts, loading };
 }
 
 export function useCategories() {

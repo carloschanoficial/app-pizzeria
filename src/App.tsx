@@ -18,6 +18,7 @@ import { PedidosPage } from '@/pages/PedidosPage';
 import { PerfilPage } from '@/pages/PerfilPage';
 import {
   useProducts,
+  useActiveShifts,
   useCategories,
   useExtraIngredients,
   useStoreSettings,
@@ -56,6 +57,7 @@ function AppContent() {
   }, []);
 
   const { products, loading } = useProducts();
+  const { shifts } = useActiveShifts();
   const { categories } = useCategories();
   const { extras } = useExtraIngredients();
   const { settings } = useStoreSettings();
@@ -151,7 +153,7 @@ function AppContent() {
         {activeTab === 'menu' && (
           <MenuPage
             products={products}
-            categories={categories}
+            shifts={shifts}
             searchQuery={searchQuery}
             onProductClick={handleProductClick}
             onHalfHalfAdded={() => setToastShow(true)}

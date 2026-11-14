@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react';
-import type { Product, Category } from '@/types';
 import { ProductCard } from '@/components/ProductCard';
 import { HalfAndHalfCard } from '@/components/HalfAndHalfCard';
 import { ProductListCard } from '@/components/ProductListCard';
 import { ViewModeToggle, type ProductViewMode } from '@/components/ViewModeToggle';
+import type { Product, ServiceShift } from '@/types';
 
 interface MenuPageProps {
   products: Product[];
-  categories: Category[];
+  shifts: ServiceShift[];
   searchQuery: string;
   onProductClick: (p: Product) => void;
   onHalfHalfAdded: () => void;
@@ -15,18 +15,23 @@ interface MenuPageProps {
 
 export function MenuPage({
   products,
-  categories,
+  shifts,
   searchQuery,
   onProductClick,
   onHalfHalfAdded,
 }: MenuPageProps) {
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeShiftId, setActiveShiftId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ProductViewMode>('grid');
+
+  const shiftTabs = useMemo(
+    () => shifts.filter((s) => products.some((p) => p.shift_id === s.id)),
+    [shifts, products],
+  );
 
   const filtered = useMemo(() => {
     let result = products;
-    if (activeCategory) {
-      result = result.filter((p) => p.category_id === activeCategory);
+    if (activeShiftId) {
+      result = result.filter((p) => p.shift_id === activeShiftId);
     }
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -37,44 +42,41 @@ export function MenuPage({
       );
     }
     return result;
-  }, [products, activeCategory, searchQuery]);
+  }, [products, activeShiftId, searchQuery]);
 
   const pizzas = products.filter((p) => p.sizes !== null && p.is_available);
-  const isAllOrPizzas = !activeCategory || activeCategory === categories.find((c) => c.slug === 'pizzas')?.id;
+  const showHalfAndHalf = filtered.some((p) => p.sizes !== null);
 
   return (
     <div className="space-y-4">
-      {/* Chips de categorías */}
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide">
         <button
-          onClick={() => setActiveCategory(null)}
+          onClick={() => setActiveShiftId(null)}
           className={`flex-shrink-0 rounded-full px-4 py-2 text-sm font-bold transition ${
-            activeCategory === null
+            activeShiftId === null
               ? 'bg-red-600 text-white'
               : 'bg-white text-gray-600 ring-1 ring-gray-200'
           }`}
         >
           Todo
         </button>
-        {categories.map((cat) => (
+        {shiftTabs.map((shift) => (
           <button
-            key={cat.id}
-            onClick={() => setActiveCategory(cat.id)}
+            key={shift.id}
+            onClick={() => setActiveShiftId(shift.id)}
             className={`flex-shrink-0 rounded-full px-4 py-2 text-sm font-bold transition ${
-              activeCategory === cat.id
+              activeShiftId === shift.id
                 ? 'bg-red-600 text-white'
                 : 'bg-white text-gray-600 ring-1 ring-gray-200'
             }`}
           >
-            {cat.name}
+            {shift.name}
           </button>
         ))}
       </div>
 
-      {/* Tarjeta Mitad y Mitad */}
-      {isAllOrPizzas && <HalfAndHalfCard pizzas={pizzas} onAdded={onHalfHalfAdded} />}
+      {showHalfAndHalf && <HalfAndHalfCard pizzas={pizzas} onAdded={onHalfHalfAdded} />}
 
-      {/* Grid o lista de productos */}
       {filtered.length > 0 ? (
         <div className="space-y-3">
           <div className="flex items-center justify-between">

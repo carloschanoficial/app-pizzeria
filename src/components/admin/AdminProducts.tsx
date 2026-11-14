@@ -3,13 +3,14 @@ import { Plus, Pencil, Trash2, X, Check, Flame, ImagePlus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { uploadImageBase64 } from '@/lib/upload';
 import { getMinPrice } from '@/lib/pricing';
-import type { Product, Category, SizeKey } from '@/types';
+import type { Product, Category, ServiceShift, SizeKey } from '@/types';
 import { SIZE_LABELS, SIZE_ORDER } from '@/types';
 import { formatPrice } from '@/lib/format';
 
 interface AdminProductsProps {
   products: Product[];
   categories: Category[];
+  shifts: ServiceShift[];
   onChanged: () => void;
 }
 
@@ -19,6 +20,7 @@ interface ProductForm {
   image_url: string;
   base_price: number;
   category_id: string;
+  shift_id: string;
   is_bestseller: boolean;
   discount_percent: number;
   is_active: boolean;
@@ -36,6 +38,7 @@ const EMPTY_FORM: ProductForm = {
   image_url: '',
   base_price: 0,
   category_id: '',
+  shift_id: '',
   is_bestseller: false,
   discount_percent: 0,
   is_active: true,
@@ -54,7 +57,7 @@ const PRICE_FIELDS: { key: keyof ProductForm; size: SizeKey }[] = [
   { key: 'price_familiar', size: 'familiar' },
 ];
 
-export function AdminProducts({ products, categories, onChanged }: AdminProductsProps) {
+export function AdminProducts({ products, categories, shifts, onChanged }: AdminProductsProps) {
   const [editing, setEditing] = useState<Product | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<ProductForm>({ ...EMPTY_FORM });
@@ -87,6 +90,7 @@ export function AdminProducts({ products, categories, onChanged }: AdminProducts
       image_url: p.image_url || '',
       base_price: p.base_price,
       category_id: p.category_id,
+      shift_id: p.shift_id ?? '',
       is_bestseller: p.is_bestseller,
       discount_percent: p.discount_percent,
       is_active: p.is_active,
@@ -123,6 +127,7 @@ export function AdminProducts({ products, categories, onChanged }: AdminProducts
       image_url: form.image_url || null,
       base_price: Number(form.base_price) || 0,
       category_id: form.category_id,
+      shift_id: form.shift_id || null,
       is_bestseller: form.is_bestseller,
       discount_percent: Number(form.discount_percent) || 0,
       is_active: form.is_active,
@@ -293,6 +298,22 @@ export function AdminProducts({ products, categories, onChanged }: AdminProducts
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field label="Turno">
+                <select
+                  value={form.shift_id}
+                  onChange={(e) => setForm({ ...form, shift_id: e.target.value })}
+                  className="input-base"
+                >
+                  <option value="">Sin turno (siempre visible)</option>
+                  {shifts.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                      {s.is_active ? '' : ' (inactivo)'}
                     </option>
                   ))}
                 </select>

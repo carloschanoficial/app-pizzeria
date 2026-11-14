@@ -139,6 +139,7 @@ export function AdminPanel({ isSuperAdmin, onExit, install }: AdminPanelProps) {
           <AdminProducts
             products={products}
             categories={categories}
+            shifts={shifts}
             onChanged={fetchAll}
           />
         ) : tab === 'extras' ? (
